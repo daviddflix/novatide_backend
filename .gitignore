@@ -1,7 +1,8 @@
 # Virtual environment
 venv/
 
-**/service_account
+# Ignore all files with the name service_account
+**/service_account.json
 
 # Byte-compiled / optimized Python files
 __pycache__/
