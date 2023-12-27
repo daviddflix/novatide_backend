@@ -11,7 +11,7 @@ client = OpenAI(
     api_key=OPENAI_KEY,
 )
 
-def ask(prompt, model="gpt-4"):
+def ask(prompt, model="gpt-4-1106-preview"):
 
     try:
         response = client.chat.completions.create(
@@ -32,4 +32,3 @@ def ask(prompt, model="gpt-4"):
         return f"OpenAI API returned an API Error: {e}"
     
 
-# print(ask(prompt="Write a short paragraph (maximum 400 characters) explaining the problem addressed by ethereum cryptocurrency project and evaluate its effectiveness in solving it, using formal language. Analyze its positioning in the market without using adjectives that exaggerate its attributes, such as 'bold', 'unique' or 'groundbreaking'"))

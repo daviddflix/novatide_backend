@@ -1,6 +1,6 @@
 [
     {
-        "sh_url": "https://docs.google.com/spreadsheets/d/1pTKOrFj2x-L5KMO_AWhzMlw_axyHd3kFLKZKb9ZKaM8/edit#gid=1325184721",
+        "sh_url": "https://docs.google.com/spreadsheets/d/1lThS_snWxGvTSWosmG-iURqZY8CZG1Rhhk_dzf4wkyw/edit#gid=450624291",
         "id": "ethereum",
         "symbol": "ETH",
         "competitors": [
@@ -11,6 +11,21 @@
             {
                 "id": "cardano",
                 "symbol": "ADA"
+            }
+        ]
+    },
+    {
+        "sh_url": "https://docs.google.com/spreadsheets/d/1pTKOrFj2x-L5KMO_AWhzMlw_axyHd3kFLKZKb9ZKaM8/edit#gid=756836805",
+        "id": "bitcoin",
+        "symbol": "BTC",
+        "competitors": [
+            {
+                "id": "dogecoin",
+                "symbol": "DOGE"
+            },
+            {
+                "id": "ripple",
+                "symbol": "XRP"
             }
         ]
     }

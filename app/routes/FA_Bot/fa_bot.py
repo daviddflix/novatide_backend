@@ -1,19 +1,23 @@
 import json
 from flask import Blueprint
-from app.services.staking_rewards import get_staking_reward_data
-from app.services.coingecko import fetch_tokenomics_data, fetch_introduction_data
-from app.services.spreadsheet import write_data_to_tokenomics_feature_section, write_data_to_tokenomics_mechanism_section, write_data_to_introduction_section
+from datetime import datetime
+from app.scheduler import scheduler
+from app.routes.FA_Bot.introduction import introduction, fetch_and_write_introduction_data
+from app.routes.FA_Bot.tokenomics import ( 
+                                        fetch_max_supply, 
+                                        fetch_tokenomics_data, 
+                                        get_staking_rewards_data,
+                                        token_distribution_and_accrual_mechanism
+                                        )
 
 fa_bp = Blueprint('main', __name__)
 
-@fa_bp.route('/fetch', methods=['GET'])
-def get_data_from_apis():
-
+# Gets the JSON containing all the coins
+def get_coins():
     coins = []
 
     try:
-         
-         with open('app/services/spreadsheets.json', 'r') as file:
+        with open('app/services/spreadsheets.json', 'r') as file:
             data = json.load(file)
             for entry in data:
                 id = entry["id"]
@@ -21,49 +25,59 @@ def get_data_from_apis():
                 symbol = entry["symbol"]
                 competitors = entry["competitors"]
                 coins.append((id, sh_url, symbol, competitors))
+            
+            return coins, 200
 
     except Exception as e:
         return f'Error getting data from spreadsheets.json {str(e)}', 500
     
+
+# Activates the FA BOT
+@fa_bp.route('/fa/activate', methods=['POST'])
+def activate_fa_bot():
     try:
+        coins, status = get_coins()
 
-        for coin in coins:
-            id, sh_url, symbol_id, competitors = coin
+        if status != 200:
+            return coins, status
+        
+        if status == 200:
+            for coin in coins:
+                id, sh_url, symbol_id, competitors = coin 
 
-            # fetch and write data to the feature section column 2
-            api_response, api_status = fetch_tokenomics_data(coin=id)
-            print('\napi_response: ', api_response)
+                scheduler.add_job(introduction, 'date', id=f'{id} Introduction', run_date=datetime.now(), args=[id, sh_url])
+                scheduler.add_job(fetch_and_write_introduction_data, 'interval', id=f'{id} Introduction data', minutes=2, args=[id, sh_url], next_run_time=datetime.now())
+                scheduler.add_job(fetch_max_supply, 'interval', id=f'{id} max supply', weeks=4, args=[id, sh_url], next_run_time=datetime.now())
+                scheduler.add_job(fetch_tokenomics_data, 'interval', id=f'{id} token data', weeks=1, args=[id, sh_url], next_run_time=datetime.now())
+                scheduler.add_job(get_staking_rewards_data, 'interval', id=f'{symbol_id} staking reward', days=1, args=[symbol_id, sh_url], next_run_time=datetime.now())
+                scheduler.add_job(token_distribution_and_accrual_mechanism, 'interval', id=f'{id} token distribution', weeks=24, args=[id, sh_url], next_run_time=datetime.now())
+                
+                # fetch and write data to the feature section column 3 and 4
+                for index, competitor in enumerate(competitors):
+                    column = index + 3
+                    competitor_id, symbol = competitor["id"], competitor["symbol"]
+                    scheduler.add_job(fetch_max_supply, 'interval', id=f'{competitor_id} max supply', weeks=4, args=[competitor_id, sh_url, column], next_run_time=datetime.now())
+                    scheduler.add_job(fetch_tokenomics_data, 'interval', id=f'{competitor_id} token data', weeks=1, args=[competitor_id, sh_url, column], next_run_time=datetime.now())
 
-            if api_status == 200:
-                feature_response_2 = write_data_to_tokenomics_feature_section(sh_url=sh_url, column=2, data=api_response)
-                print('\nfeature_response_2: ', feature_response_2)
+                print(f'FA Bot activated for {id}')
 
-             # fetch and write data to the feature section column 3 and 4
-            for index, competitor in enumerate(competitors):
-                column = index + 3
-                competitor_id, symbol = competitor["id"], competitor["symbol"]
-                competitor_response, competitor_status = fetch_tokenomics_data(coin=competitor_id)
-
-                print('\ncompetitor_response: ', competitor_response)
-                if competitor_status == 200:
-                    feature_response = write_data_to_tokenomics_feature_section(sh_url=sh_url, column=column, data=competitor_response)
-                    print(f'\nfeature_response_{column}: ', feature_response)
-
-
-            # get and write the monetary incentive
-            staking_reward_response, sr_status = get_staking_reward_data(symbol=symbol_id)
-            if sr_status == 200:
-                mechanism_response = write_data_to_tokenomics_mechanism_section(sh_url=sh_url, data=staking_reward_response)
-                print('\nmechanism_response: ', mechanism_response)
-
-            # get and write the market cap and 24h volumn
-            introduction_response, intro_status = fetch_introduction_data(coin=id)
-            if intro_status == 200:
-                response = write_data_to_introduction_section(sh_url=sh_url, data=introduction_response)
-                print('\nintroduction_response: ', response)
-
-
-        return 'ok', 200
+            return f'All FA Bot activated', 200
             
     except Exception as e:
-        return f'Error in getting data from APIs {str(e)}'
+        return f'An error occured activating FA Bot: {str(e)}', 500
+    
+
+# Deactivates 
+@fa_bp.route('/fa/deactivate', methods=['POST'])
+def deactivate_fa_bot():
+    try:
+        
+        scheduler.remove_all_jobs()
+        return 'All FA Bot deactivated', 200
+        
+    except Exception as e:
+        return f'Error while deactivating FA Bot: {str(e)}', 500
+
+
+
+
