@@ -25,7 +25,7 @@ def ask(prompt, model="gpt-4-1106-preview"):
         return summary
 
     except APIConnectionError as e:
-        return f"Failed to connect to OpenAI API: {e}"
+        return f"OpenAI API failed to establish a connection : {e}"
     except RateLimitError as e:
         return f"OpenAI API request exceeded rate limit: {e}"
     except APIError as e:
