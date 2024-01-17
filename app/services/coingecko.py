@@ -22,4 +22,19 @@ def confirm_coin_existence(coin):
         return True
     else:
         return False
+    
+
+# Returns a list of Dicts with all the available coins in Coingecko
+def get_list_of_coins():
+
+    try:
+        coingecko_response = requests.get(f'{BASE_URL}/coins/list', headers=headers)
+
+        if coingecko_response.status_code == 200:
+            return coingecko_response.json(), coingecko_response.status_code
+        
+        return coingecko_response.content, coingecko_response.status_code
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return None, None
             
