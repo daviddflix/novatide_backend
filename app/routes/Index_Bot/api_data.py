@@ -141,7 +141,7 @@ def get_once(coins, sh_url):
             response = requests.get(f'{BASE_URL}/coins/{coin_id}', headers=headers)
 
             white_paper_coinmarket = 'N/A'
-            if coin_symbol.casefold() != 'na':
+            if coin_symbol.casefold() != 'na' or coin_symbol.casefold() is None:
                 whitepaper = get_crypto_metadata(coin_symbol)
                 white_paper_coinmarket = 'N/A' if coin_symbol is None else ('N/A' if whitepaper is None else whitepaper)
 
@@ -163,8 +163,7 @@ def get_once(coins, sh_url):
                 
                 website_response = perplexity_api_request(website_prompt)
                 website_extracted_text = 'N/A' if website_response is None else extract_and_validate_urls(website_response)
-                # final_website_response = 'Extracted: ' + website_extracted_text + ' - Perplexity response: ' + website_response
-
+               
                 intro_response = perplexity_api_request(intro_prompt)
                 intro_response = 'N/A' if intro_response is None else intro_response
 
@@ -174,7 +173,7 @@ def get_once(coins, sh_url):
                 cell_list = [
                     Cell(coin_index, 3, website_extracted_text),  
                     Cell(coin_index, 5, intro_response),  
-                    Cell(coin_index, 8, 'Information not available on Coingecko...'),  
+                    Cell(coin_index, 8, 'N/A'),  
                     Cell(coin_index, 9, 'N/A'),  
                     Cell(coin_index, 10, 'N/A'),  
                     Cell(coin_index, 7, white_paper_coinmarket),  
@@ -187,7 +186,6 @@ def get_once(coins, sh_url):
             
                 # WHEN THE COIN IS NOT FOUND, IT FOLLOWS THIS WAY
 
-                # project_summary = 'The centrifuge protocol aims'
                 project_summary = ask(intro_prompt)
                 project_summary = 'N/A' if project_summary.startswith('OpenAI API') else project_summary
 
@@ -207,6 +205,7 @@ def get_once(coins, sh_url):
                 
                 # Gets the contract, N/A if not found
                 platforms = response_json.get("detail_platforms", None)
+                print('platforms: ', platforms)
                 if platforms and any(details.get('contract_address') or details.get('decimal_place') is not None for details in platforms.values()):
                     contract_addresses = [
                         f"{platform}: {details.get('contract_address', 'N/A')}"
@@ -216,9 +215,12 @@ def get_once(coins, sh_url):
                     contract_addresses = "\n".join(contract_addresses)
                 else:
                     contract_addresses = 'N/A'
+                
+                print('contract_addresses: ', contract_addresses)
 
                 
                 coingecko_link = f'https://www.coingecko.com/en/coins/{coin_id}'
+                print('coingecko_link: ', coingecko_link)
 
 
                 cell_list = [
@@ -261,11 +263,13 @@ def get_once_a_day(coins, sh_url):
             response = requests.get(f'{BASE_URL}/coins/{formatted_coin}', headers=headers)
                        
             if response.status_code !=200:
+                print(f'{coin_id} not found...')
                 continue
             else:
 
                 availability_price_one_year  = worksheet.cell(coin_index, 12).value
-                is_yearly_price_available = None
+
+                is_yearly_price_available = False
                 if not availability_price_one_year:
                     cell_list = [
                         Cell(coin_index, 13, 'Availability from one year ago price not found or is invalid')
@@ -277,18 +281,26 @@ def get_once_a_day(coins, sh_url):
                 response_json = response.json()
                 
                 market_data = response_json.get('market_data')
+                print(f'\n\nGet once a day data: {coin_id}')
 
                 ath = 'N/A' if market_data['ath'] is None else market_data['ath']['usd']
+                print('ath: ', ath)
                 ath_percentage = 'N/A' if market_data['ath_change_percentage'] is None else market_data['ath_change_percentage']['usd']
+                print('ath_percentage: ', ath_percentage)
                 ath_formatted = f'${ath}, {ath_percentage}%'
+                print('ath_formatted: ', ath_formatted)
 
                 market_cap = 'N/A' if market_data['market_cap'] is None else market_data['market_cap']['usd']
-                formatted_market_Cap = round_up_and_format(market_cap)
+                print('market_cap: ', market_cap)
+                formatted_market_Cap = 'N/A...'
+                if market_cap != 'N/A':
+                    formatted_market_Cap =  round_up_and_format(market_cap)
 
                 current_price = 'N/A' if market_data['current_price'] is None else f"${market_data['current_price']['usd']}"
+                print('current_price: ', current_price)
               
                 price_change_percentage_1y = 'N/A' if market_data['price_change_percentage_1y'] is None else f"{market_data['price_change_percentage_1y']:,.4f}%"
-                
+                print('price_change_percentage_1y: ', price_change_percentage_1y)
                 if price_change_percentage_1y != 'N/A':
                     cells = f'N{coin_index}:N{coin_index}'
                     price = check_price(price_change_percentage_1y)
@@ -343,21 +355,27 @@ def get_once_a_month(coins, sh_url):
             response = requests.get(f'{BASE_URL}/coins/{coin_id}', headers=headers)
 
             if response.status_code !=200:
+                print(f'{coin_id} not found...')
                 continue
             else:
                 response_json = response.json()
                 market_data = response_json.get('market_data')
+                print(f'\nGet once a month data: {coin_id}')
             
                 max_supply_str = 'Infinite' if market_data['max_supply'] is None else f"${market_data['max_supply']:,.2f}"
+                print('max_supply_str: ', max_supply_str)
 
                 supply_model = 'Inflationary' if market_data['max_supply'] is None else 'Deflationary'
+                print('supply_model: ', supply_model)
         
-                fully_diluted_valuation = 'N/A' if market_data['fully_diluted_valuation'] is None else market_data['fully_diluted_valuation']['usd']          
-                formatted_fully_diluted = round_up_and_format(fully_diluted_valuation)
-
+                fully_diluted_valuation = 'N/A' if not market_data['fully_diluted_valuation'] else market_data['fully_diluted_valuation']['usd']          
+                print('fully_diluted_valuation: ', fully_diluted_valuation)
+                formatted_fully_diluted = 'N/A' if fully_diluted_valuation == 'N/A' else round_up_and_format(fully_diluted_valuation)
+                print('formatted_fully_diluted: ', formatted_fully_diluted)
                 circulating_supply_str = 'N/A' if market_data['circulating_supply'] is None else market_data['circulating_supply']
-                formatted_circulating_supply = round_up_and_format(circulating_supply_str)
-                
+                print('circulating_supply_str:', circulating_supply_str)
+                formatted_circulating_supply = 'N/A' if circulating_supply_str == 'N/A' else round_up_and_format(circulating_supply_str)
+                print('formatted_circulating_supply: ', formatted_circulating_supply)
                 circulating_supply_percentage = '100%' if max_supply_str == 'Infinite' else (int(market_data['circulating_supply']) / int(market_data['max_supply'])) * 100
                 circulating_supply_percentage = f"{circulating_supply_percentage:,.2f}%" if circulating_supply_percentage != '100%' else '100%'
 

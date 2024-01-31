@@ -67,14 +67,20 @@ def get_spreadsheet_coinsV2(sh_url):
                     if coin_symbol == '':
                         coin_symbol = 'NA'
 
+                    coin_id = coin_name
+
                     for coin in list_of_coins:
-                        if coin_name.casefold() == coin['name'].casefold():
-                            coin_name = coin['id']
+                        if coin_id.casefold().strip() == coin['name'].casefold().strip():
+                            print('coin_id: ', coin_id)
+                            print('Coingecko name: ', coin['name'])
+                            coin_id = coin['id']
                             break
-                        elif coin_name.casefold() == coin['id'].casefold():
+                        elif coin_id.casefold().strip() == coin['id'].casefold().strip():
+                            print('coin_id: ', coin_id)
+                            print('Coingecko id: ', coin['id'])
                             break
                        
-                    result_dict_coins.append({'coin_id': coin_name.casefold(), 'coin_symbol': coin_symbol.casefold()})
+                    result_dict_coins.append({'coin_id': coin_id.casefold().strip(), 'coin_symbol': coin_symbol.casefold().strip()})
 
                 return result_dict_coins, 200
             else:
@@ -102,6 +108,10 @@ def activate_index_bot():
         
         if coins_status != 200:
             return jsonify({'message': coins, 'status': 404}), 404
+        
+        # get_once(coins, sh_url)
+        # get_once_a_day(coins, sh_url)
+        # get_once_a_month(coins, sh_url)
                    
         scheduler.add_job(get_once, run_date=datetime.now(), id=f'{sh_url + str(0)}',  args=[coins, sh_url])
         scheduler.add_job(get_once_a_day, 'interval', id=f'{sh_url + str(1)}', days=1, args=[coins, sh_url], next_run_time=datetime.now(), replace_existing=True)
