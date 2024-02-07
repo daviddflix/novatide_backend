@@ -2,7 +2,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_MAX_INSTANCES, EVENT_JOB_EXECUTED
 from config import db_url
-from services.slack.actions import send_INFO_message_to_slack_channel
+from app.services.slack.actions import send_INFO_message_to_slack_channel
 
 scheduler = BackgroundScheduler(executors={'default': {'type': 'threadpool', 'max_workers': 50}})
 scheduler.add_jobstore('sqlalchemy', url= db_url)
