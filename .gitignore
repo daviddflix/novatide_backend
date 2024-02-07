@@ -45,8 +45,6 @@ libs/
 # Compiled C extensions
 *.so
 
-# Ignore local settings
-config.py
 
 # Ignore compiled Python files in a build directory
 build/

@@ -2,6 +2,7 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_MAX_INSTANCES, EVENT_JOB_EXECUTED
 from config import db_url
+from services.slack.actions import send_INFO_message_to_slack_channel
 
 scheduler = BackgroundScheduler(executors={'default': {'type': 'threadpool', 'max_workers': 50}})
 scheduler.add_jobstore('sqlalchemy', url= db_url)
@@ -17,10 +18,14 @@ def job_executed(event):
 def job_error(event):
     job_id = str(event.job_id).capitalize()
     print(f'\nAn error occured in {job_id}, response: {event.retval}')
+    send_INFO_message_to_slack_channel(channel_id="C06FTS38JRX", title_message="Error executing Index Bot", 
+                                       sub_title=f"Spreadsheet: {job_id}", message=f"Reason: {event.retval}")
    
 def job_max_instances_reached(event): 
     job_id = str(event.job_id).capitalize()
     print(f'Maximum number of running instances reached, *Upgrade* the time interval for {job_id}')
+    send_INFO_message_to_slack_channel(channel_id="C06FTS38JRX", title_message="Error executing Index Bot", 
+                                       sub_title=f"Spreadsheet: {job_id}", message="Reason: Maximum number of running instances reached")
   
 
    

@@ -135,6 +135,11 @@ def get_once(coins, sh_url):
             coin_id = coin_name['coin_id']
             coin_symbol = coin_name['coin_symbol']
 
+            project_summary_value = worksheet.acell(f'E{coin_index}').value
+
+            if project_summary_value:
+                continue
+
             general_cells = f'C{coin_index}:V{coin_index}'
             format_cell_range(worksheet, general_cells, fmt_general)
 

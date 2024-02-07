@@ -3,7 +3,8 @@
 # import gspread
 # import re
 # import os
-# from dotenv import load_dotenv
+# from dotenv import load_dotenvfro
+from pathlib import Path
 
 # # Load environment variables from the .env file
 # load_dotenv()
@@ -154,3 +155,5 @@
 
 
 
+absolute_path = Path('app/services/service_account.json').resolve()
+print('absolute_path: ', absolute_path)

@@ -109,13 +109,13 @@ def activate_index_bot():
         if coins_status != 200:
             return jsonify({'message': coins, 'status': 404}), 404
         
-        # get_once(coins, sh_url)
-        # get_once_a_day(coins, sh_url)
-        # get_once_a_month(coins, sh_url)
+        get_once(coins, sh_url)
+        get_once_a_day(coins, sh_url)
+        get_once_a_month(coins, sh_url)
                    
-        scheduler.add_job(get_once, run_date=datetime.now(), id=f'{sh_url + str(0)}',  args=[coins, sh_url])
-        scheduler.add_job(get_once_a_day, 'interval', id=f'{sh_url + str(1)}', days=1, args=[coins, sh_url], next_run_time=datetime.now(), replace_existing=True)
-        scheduler.add_job(get_once_a_month, 'interval', id=f'{sh_url + str(2)}', days=30, args=[coins, sh_url], next_run_time=datetime.now(), replace_existing=True)
+        # scheduler.add_job(get_once, run_date=datetime.now(), id=f'{sh_url + str(0)}',  args=[coins, sh_url])
+        # scheduler.add_job(get_once_a_day, 'interval', id=f'{sh_url + str(1)}', days=1, args=[coins, sh_url], next_run_time=datetime.now(), replace_existing=True)
+        # scheduler.add_job(get_once_a_month, 'interval', id=f'{sh_url + str(2)}', days=30, args=[coins, sh_url], next_run_time=datetime.now(), replace_existing=True)
   
         jobs = scheduler.get_jobs()
         jobs_data = [job.id[:-1] for job in jobs]
