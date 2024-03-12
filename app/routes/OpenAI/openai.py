@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from app.services.openAI import ask
+from app.services.OpenAI.openAI import ask_chatgpt
 
 openai_bp = Blueprint('openai', __name__)
 
@@ -10,11 +10,13 @@ def ask_openai():
         prompt = request.form.get('prompt')
 
         if not prompt:
-            return 'Prompt needed', 404
+            return 'Prompt is required', 404
 
-        if prompt:
-            result = ask(prompt=prompt, model=model)
-            return result, 200
+        result = ask_chatgpt(prompt=prompt, model=model)
+        if result['success']:
+            return result['response'], 200
+        else:
+            return result['response'], 500
 
     except Exception as e:
-        return f"Error in ask to openai route {str(e)}"
+        return f"Error in ask to openai route {str(e)}", 500

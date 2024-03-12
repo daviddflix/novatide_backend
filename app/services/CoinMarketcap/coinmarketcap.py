@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 COINMARKET_API_KEY = os.getenv("COINMARKET_API_KEY")
 
+# Gets the Whitepaper of a Token
 def get_crypto_metadata(coin_name):
 
     base_url = "https://pro-api.coinmarketcap.com/v2/cryptocurrency/info"
@@ -25,25 +26,25 @@ def get_crypto_metadata(coin_name):
         
         if response.status_code == 200:
             data = response.json()
-            
-            if 'data' in data and formatted_coin in data['data']:
+            credit_count = data['status']['credit_count']
+
+            if 'status' in data and not data['status']['error_message']:
+
                 urls = data['data'][formatted_coin][0]['urls']
+
                 if 'technical_doc' in urls and urls['technical_doc']:
-                    return urls['technical_doc'][0]
+                    return {'whitepaper': urls['technical_doc'][0], 'success': True, 'credit_count': credit_count}
             else:
-                print(f"Error: No technical documentation URL found for {formatted_coin}.")
-                return None
+                return {'message ': data['status']['error_message'], 'success': False}
         else:
-            print(f"Error: Unable to retrieve metadata for {formatted_coin}. Check the coin symbol.")
-            return None
+            return {'message ': response.content, 'success': False}
 
     except requests.exceptions.RequestException as e:
-        print(f"Error: {e}")
-        return None
+        return {'message ': f"Error in coinmarketcap: {str(e)}", 'success': False}
+    except Exception as e:
+        return {'message ': f"Error in coinmarketcap: {str(e)}", 'success': False}
 
 
-# coin_name = 'dbc'
 
-# metadata = get_crypto_metadata(coin_name)
-
-# print(metadata)
+# coin_name = 'eth'
+# print(get_crypto_metadata(coin_name))

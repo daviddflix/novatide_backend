@@ -1,12 +1,9 @@
 # config.py
+
 import os
-from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
-
-ROOT_DIRECTORY = Path(__file__).parent.resolve()
-print('ROOT_DIRECTORY: ', ROOT_DIRECTORY)
 
 DB_PORT = os.getenv('DB_PORT')
 DB_NAME = os.getenv('DB_NAME')

@@ -4,7 +4,7 @@ import gspread
 import requests
 from gspread.cell import Cell
 from dotenv import load_dotenv
-from app.services.openAI import ask
+from app.services.OpenAI.openAI import ask_chatgpt
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -186,9 +186,9 @@ def token_distribution_and_accrual_mechanism(coin, sh_url):
     accrual_mechanisn_advantage_prompt = f'Define briefly whether the {coin} protocol has an advantage over its competitors in terms of its value accrual mechanism (inflationary or deflationary model, presence of token burning or token buyback). Keep the response under 300 characters. Avoid referring to a specific knowledge cut-off date and simply provide the information.'
 
     try:
-        result_token_distribution = ask(token_distribution_prompt)
-        result_aacrual_mechanism = ask(aacrual_mechanism_prompt)
-        result_accrual_mechanisn_advantage = ask(accrual_mechanisn_advantage_prompt)
+        result_token_distribution = ask_chatgpt(token_distribution_prompt)
+        result_aacrual_mechanism = ask_chatgpt(aacrual_mechanism_prompt)
+        result_accrual_mechanisn_advantage = ask_chatgpt(accrual_mechanisn_advantage_prompt)
 
         if result_token_distribution and result_aacrual_mechanism and result_accrual_mechanisn_advantage:
             try:

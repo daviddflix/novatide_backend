@@ -3,7 +3,7 @@ import gspread
 import requests
 from gspread.cell import Cell
 from dotenv import load_dotenv
-from app.services.openAI import ask
+from app.services.OpenAI.openAI import ask_chatgpt
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -19,7 +19,7 @@ def introduction(coin, sh_url):
     try:
         intro_prompt = f"""Write a short paragraph (maximum 400 characters) explaining the problem addressed by {coin} cryptocurrency project and evaluate its effectiveness in solving it, using a professional tone. Analyze its positioning in the market without using adjectives that exaggerate its attributes, such as 'bold', 'unique' or 'groundbreaking'"""
 
-        result = ask(intro_prompt)
+        result = ask_chatgpt(intro_prompt)
 
         if result:
             try:

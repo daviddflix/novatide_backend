@@ -1,8 +1,9 @@
 from app.services.slack.slack import client
 from slack_sdk.errors import SlackApiError
 
-
+# Send a message to a Slack Channel
 def send_INFO_message_to_slack_channel(channel_id, title_message, sub_title, message):
+        
         blocks=[
                 {
                     "type": "section",
@@ -33,9 +34,10 @@ def send_INFO_message_to_slack_channel(channel_id, title_message, sub_title, mes
             )
             response = result['ok']
             if response == True:
-                return f'Message sent successfully to Slack channel {channel_id}', 200
+                return f'Message sent successfully to Slack channel {channel_id}'
+            return None
 
         except SlackApiError as e:
-            print(f"Error posting message: {e}")
-            return f'Error sending this message: "{title_message}" to Slack channel, Reason:\n{str(e)}', 500
+            print(f'Error sending this message: "{title_message}" to Slack channel, Reason:\n{str(e)}')
+            return None
 

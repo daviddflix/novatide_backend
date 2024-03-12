@@ -4,14 +4,13 @@ from dotenv import load_dotenv
 from openai import APIError, RateLimitError, APIConnectionError
 
 load_dotenv()
-
 OPENAI_KEY = os.getenv('OPENAI_API_KEY')
 
 client = OpenAI(
     api_key=OPENAI_KEY,
 )
 
-def ask(prompt, model="gpt-4-1106-preview"):
+def ask_chatgpt(prompt, model="gpt-4-1106-preview"):
 
     try:
         response = client.chat.completions.create(
@@ -22,13 +21,16 @@ def ask(prompt, model="gpt-4-1106-preview"):
             max_tokens=1024,
         )
         summary = response.choices[0].message.content
-        return summary
+        return {'response': summary, 'success': True}
 
     except APIConnectionError as e:
-        return f"OpenAI API failed to establish a connection : {e}"
+        print(f"OpenAI API failed to establish a connection: {e}")
+        return {'response': f"OpenAI API failed to establish a connection: {e}", 'success': False}
     except RateLimitError as e:
-        return f"OpenAI API request exceeded rate limit: {e}"
+        print(f"OpenAI API request exceeded rate limit: {e}")
+        return {'response': f"OpenAI API request exceeded rate limit: {e}", 'success': False}
     except APIError as e:
-        return f"OpenAI API returned an API Error: {e}"
+        print(f"OpenAI API returned an API Error: {e}")
+        return {'response': f"OpenAI API returned an API Error: {e}", 'success': False}
     
 
