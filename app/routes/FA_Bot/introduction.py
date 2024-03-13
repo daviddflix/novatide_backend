@@ -3,7 +3,7 @@ import gspread
 import requests
 from gspread.cell import Cell
 from dotenv import load_dotenv
-from app.services.OpenAI.openAI import ask_chatgpt
+from app.services.openAI.openAI import ask_chatgpt
 
 # Load environment variables from the .env file
 load_dotenv()

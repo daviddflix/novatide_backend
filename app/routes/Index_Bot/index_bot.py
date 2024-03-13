@@ -3,22 +3,17 @@ from dotenv import load_dotenv
 from app.scheduler import scheduler
 from flask import Blueprint, request
 from apscheduler.jobstores.base import JobLookupError
-from app.services.CoinGecko.actions import get_token_data
-from app.services.Gspread.actions import get_spreadsheet_coinsV2
-from app.services.CoinMarketcap.coinmarketcap import get_crypto_metadata
+from app.services.coingecko.actions import get_token_data
+from app.services.gspread.actions import get_spreadsheet_coinsV2
+from app.services.coinMarketCap.coinmarketcap import get_crypto_metadata
 
+
+index_bp = Blueprint('index', __name__)
 
 # Load environment variables from the .env file
 load_dotenv()
-
-print(get_token_data('solana'))
-
-
-
-
-
-
-
+# print(get_token_data('yield-guild-games'))
+# print(get_crypto_metadata('ygg'))
 
 
 

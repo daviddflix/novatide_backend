@@ -4,14 +4,14 @@ import gspread
 import requests
 from gspread.cell import Cell
 from dotenv import load_dotenv
-from app.services.OpenAI.openAI import ask_chatgpt
+from app.services.openAI.openAI import ask_chatgpt
 
 # Load environment variables from the .env file
 load_dotenv()
 
-STAKING_REWARD_API_KEY = os.getenv("STAKING_REWARD_API_KEY")
 COINGECKO_API_KEY = os.getenv("COINGECKO_API_KEY")
 
+STAKING_REWARD_API_KEY = os.getenv("STAKING_REWARD_API_KEY")
 STAKING_REWARD_BASE_URL = "https://api.stakingrewards.com/public/query"
 BASE_URL = 'https://pro-api.coingecko.com/api/v3'
 

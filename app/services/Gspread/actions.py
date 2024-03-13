@@ -1,7 +1,7 @@
 import gspread
 from itertools import zip_longest 
-from app.services.Gspread.gspread import gc
-from app.services.CoinGecko.actions import get_list_of_coins
+from app.services.gspread.gspread import gc
+from app.services.coingecko.actions import get_list_of_coins
 
 # Gets all the coins in the spreadsheet in a single list
 def get_spreadsheet_coinsV2(sh_url, sheet_index=0):
