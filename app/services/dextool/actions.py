@@ -11,8 +11,6 @@ DEXTOOL_API_KEY = os.getenv("DEXTOOL_API_KEY")
 dextools = DextoolsAPIV2(DEXTOOL_API_KEY, plan="standard")
 
 
-
-
 # Gets token liquidity
 def get_token_liquidity(token_id, address):
     try:
@@ -65,10 +63,10 @@ def get_all_tokens_info():
             else:
                 return {'message': response.get('message', 'Unknown error'), 'success': False}
         
-        # # Write all_data to a text file
-        # with open('all_data.txt', 'w') as file:
-        #     for item in all_data:
-        #         file.write(str(item) + '\n')
+        # Write all_data to a text file
+        with open('all_data.txt', 'w') as file:
+            for item in all_data:
+                file.write(str(item) + '\n')
         
         return {'data': all_data, 'success': True}
 
@@ -111,6 +109,6 @@ def get_all_dexes_of_token(token_id):
     
 
 
-print(get_token_liquidity(token_id="ether", address="0x6c22910c6f75f828b305e57c6a54855d8adeabf8"))
+# print(get_token_liquidity(token_id="ether", address="0xa29fe6ef9592b5d408cca961d0fb9b1faf497d6d"))
 
-# print(get_token_info("solana"))
+# get_all_tokens_info()

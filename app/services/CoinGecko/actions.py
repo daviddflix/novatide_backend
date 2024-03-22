@@ -1,6 +1,6 @@
 import requests
 from datetime import datetime, timedelta
-from app.services.CoinGecko.coingecko import BASE_URL, headers
+from app.services.coingecko.coingecko import BASE_URL, headers
 
 # Get today's date
 current_date = datetime.now()
@@ -17,13 +17,14 @@ def get_list_of_coins():
     try:
         coingecko_response = requests.get(f'{BASE_URL}/coins/list', headers=headers)
         if coingecko_response.status_code == 200:
-            return coingecko_response.json(), coingecko_response.status_code
-        return coingecko_response.content, coingecko_response.status_code
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        return None, None
+            return {'list_all_tokens': coingecko_response.json(), 'success': True}
+        
+        return {'response': coingecko_response.content.decode('utf-8'), 'success': False}
 
-# Checks if the token exist on CoinGecko
+    except Exception as e:
+        return {'response': f"Error: {str(e)}", 'success': False}
+
+# Get basic data from Coingecko
 def get_token_data(coin):
     try:
         formatted_coin = str(coin).casefold().strip()
@@ -119,7 +120,7 @@ def get_token_data(coin):
                 'success': True
             }
         else:
-            return {'response': f'{response.content} - {historical_response.content}', 'success': False}
+            return {'response': response.content.decode('utf-8'), 'success': False}
     except Exception as e:
         return {'response': str(e), 'success': False}
 

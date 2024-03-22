@@ -26,18 +26,20 @@ def get_crypto_metadata(coin_name):
         
         if response.status_code == 200:
             data = response.json()
+            
             credit_count = data['status']['credit_count']
 
             if 'status' in data and not data['status']['error_message']:
 
                 urls = data['data'][formatted_coin][0]['urls']
-
                 if 'technical_doc' in urls and urls['technical_doc']:
                     return {'whitepaper': urls['technical_doc'][0], 'success': True, 'credit_count': credit_count}
+                else:
+                    return {'message ': 'No whitepaper was found', 'success': False}
             else:
                 return {'message ': data['status']['error_message'], 'success': False}
         else:
-            return {'message ': response.content, 'success': False}
+            return {'message ': response.content.decode('utf-8'), 'success': False}
 
     except requests.exceptions.RequestException as e:
         return {'message ': f"Error in coinmarketcap: {str(e)}", 'success': False}

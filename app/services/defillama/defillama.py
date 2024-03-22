@@ -44,14 +44,15 @@ def get_llama_protocols():
                     'name': protocol['name'],
                     'slug': protocol['slug'],
                     'tvl': protocol['tvl'],
-                    'change_1d': protocol['change_1d'],
-                    'change_7d': protocol['change_7d']
+                    'change_1d': protocol['change_1d'], 
+                    'change_7d': protocol['change_7d'],
+                    'chains': protocol['chains']
                 })
         
-            # # Writes the response to a JSON file
-            # with open("llama_protocols.json", "w") as json_file:
-            #     json.dump(protocols_data, json_file, indent=4)
-            # print("All protocols from Defillama saved successfully.")
+            # Writes the response to a JSON file
+            with open("llama_protocols.json", "w") as json_file:
+                json.dump(protocols_data, json_file, indent=4)
+            print("All protocols from Defillama saved successfully.")
 
             return {'message': protocols_data, 'success': True}
         else:
@@ -62,15 +63,16 @@ def get_llama_protocols():
 
 # Get the TVL of a protocol
 def get_protocol_tvl(token_id):
-    url = f"https://api.llama.fi/tvl/{token_id}"
+
+    formatted_id = str(token_id).casefold()
+    url = f"https://api.llama.fi/tvl/{formatted_id}"
     try:
         response = requests.get(url)
         if response.status_code == 200:
             data = response.json()
-           
             return {'tvl': data, 'success': True}
         else:
-            return {'message': response.content, 'success': False}
+            return {'message': response.content.decode('utf-8'), 'success': False}
     except Exception as e:
         return {'message': f"An error occurred: {str(e)}", 'success': False}
 
@@ -104,10 +106,73 @@ def get_fees_revenue_all_protocols(token_name):
         return {'message': str(e), 'success': False}
 
 
+# function to provide a default value for sorting
+def get_token_symbol(item):
+    token_symbol = item.get('tokenSymbol')
+    return token_symbol if token_symbol is not None else ''
 
 
-# print(get_fees_revenue_all_protocols('solana'))
+# # Get all Defillama chains
+# def get_llama_chains(token_symbol):
+#     url = "https://api.llama.fi/v2/chains"
+#     try:
+#         formatted_Symbol = str(token_symbol).casefold()
+#         response = requests.get(url)
+
+#         if response.status_code == 200:
+#             chains = response.json()
+#             sorted_data = sorted(chains, key=get_token_symbol)
+
+#             name = None
+#             id = None
+#             tvl = None
+#             for chain in sorted_data:
+#                 if formatted_Symbol == str(chain['tokenSymbol']).casefold():
+#                     tvl = chain['tvl']
+#                     name = chain['name']
+#                     id = chain['gecko_id']
+
+#             return { 'id': id ,'name': name, 'tvl': tvl, 'success': True}
+        
+#         return {'message': "Protocol not found", 'success': False}
+#     except requests.RequestException as e:
+#         return {'message': f"An error occurred: {str(e)}", 'success': False}
+#     except Exception as e:
+#         return {'message': f"An error occurred: {str(e)}", 'success': False}
+    
 
 
+def get_llama_chains(token_symbol):
+    url = "https://api.llama.fi/v2/chains"
+    
+    try:
+        formatted_symbol = str(token_symbol).casefold()
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            chains = response.json()
+            sorted_data = sorted(chains, key=get_token_symbol)
+
+            for chain in sorted_data:
+                 if formatted_symbol == str(chain['tokenSymbol']).casefold():
+                    return {'id': chain['gecko_id'], 'name': chain['name'], 'tvl': chain['tvl'], 'success': True}
+            
+            return {'message': "Protocol not found", 'success': False}
+        
+        return {'message': "Failed to fetch data", 'success': False}
+    
+    except requests.RequestException as e:
+        return {'message': f"Request error: {str(e)}", 'success': False}
+    
+    except Exception as e:
+        return {'message': f"An unexpected error occurred: {str(e)}", 'success': False}
+
+
+
+
+# print(get_llama_chains('lido'))
+# print(get_protocol_tvl('lido'))
+# print(get_fees_revenue_all_protocols('ethereum'))
+# print(get_llama_chains('ETH'))
 
 

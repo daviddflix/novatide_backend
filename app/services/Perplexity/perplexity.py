@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 
-def perplexity_api_request(question, model="codellama-34b-instruct"):
+def perplexity_api_request(question, model):
     
     url = "https://api.perplexity.ai/chat/completions"
 
@@ -31,6 +31,7 @@ def perplexity_api_request(question, model="codellama-34b-instruct"):
 
     try:
         response = requests.post(url, json=payload, headers=headers)
+       
         response.raise_for_status()  
 
         choices = response.json().get('choices', [])
@@ -50,3 +51,6 @@ def perplexity_api_request(question, model="codellama-34b-instruct"):
     except requests.exceptions.RequestException as err:
         print(f"Error during API request: {err}")
         return {'response': f"Error during API request: {err}", 'success': False}
+
+
+# print(perplexity_api_request('hola'))

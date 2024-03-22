@@ -1,16 +1,14 @@
 # app/__init__.py
 
 from flask import Flask
-# from app.routes.FA_Bot.fa_bot import fa_bp
-from app.routes.OpenAI.openai import openai_bp
-from app.routes.Index_Bot.index_bot import index_bp
+from app.routes.multi_bot.multi_bot import multi_bot_bp
+from app.routes.ask_ai.ask_ai import ai_bp
 
 def create_app():
     app = Flask(__name__)
     app.name = 'AI Alpha Bots'
 
-    app.register_blueprint(index_bp) 
-    # app.register_blueprint(fa_bp)
-    app.register_blueprint(openai_bp)
+    app.register_blueprint(multi_bot_bp)
+    app.register_blueprint(ai_bp)
 
     return app

@@ -10,7 +10,7 @@ client = OpenAI(
     api_key=OPENAI_KEY,
 )
 
-def ask_chatgpt(prompt, model="gpt-4-1106-preview"):
+def ask_chatgpt(prompt, model):
 
     try:
         response = client.chat.completions.create(
@@ -20,8 +20,10 @@ def ask_chatgpt(prompt, model="gpt-4-1106-preview"):
             temperature=0.6,
             max_tokens=1024,
         )
-        summary = response.choices[0].message.content
-        return {'response': summary, 'success': True}
+ 
+        # Extracting content from the response
+        response_content = response.choices[0].message.content
+        return {'response': response_content, 'success': True}
 
     except APIConnectionError as e:
         print(f"OpenAI API failed to establish a connection: {e}")

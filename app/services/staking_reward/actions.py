@@ -1,7 +1,16 @@
 import requests
-from app.services.staking_reward.staking_reward import STAKING_REWARD_BASE_URL, STAKING_REWARD_API_KEY
+# from app.services.staking_reward.staking_reward import STAKING_REWARD_BASE_URL, STAKING_REWARD_API_KEY
 
-# Stacking Rewards data for a token
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from the .env file
+load_dotenv()
+
+STAKING_REWARD_API_KEY = os.getenv("STAKING_REWARD_API_KEY")
+STAKING_REWARD_BASE_URL = "https://api.stakingrewards.com/public/query"
+
+
 def get_staking_rewards_data(symbol):
     try:
         symbol = str(symbol).upper()
@@ -12,7 +21,7 @@ def get_staking_rewards_data(symbol):
                 name
                 slug
                 symbol
-                metrics(where: {{ metricKeys: ["reward_rate", "real_reward_rate", "staking_ratio", "total_validators", "inflation_rate"] }}, limit: 10) {{
+                metrics(where: {{ metricKeys: ["reward_rate", "inflation_rate", "fee_revenue"] }}, limit: 10) {{
                   metricKey
                   label
                   defaultValue
@@ -23,7 +32,7 @@ def get_staking_rewards_data(symbol):
 
         headers = {
             "Content-Type": "application/json",
-            "X-API-KEY": STAKING_REWARD_API_KEY,  # Ensure STAKING_REWARD_API_KEY is defined
+            "X-API-KEY": STAKING_REWARD_API_KEY,  
         }
 
         data = {"query": query}
@@ -32,31 +41,26 @@ def get_staking_rewards_data(symbol):
 
         if response.status_code == 200:
             result = response.json()
+         
             assets = result.get('data', {}).get('assets', [])
             if assets:
                 asset = assets[0]
                 metrics = asset.get('metrics', [])
 
-                inflation_rate = reward_rate = real_reward_rate = staking_ratio = total_validators = None
+                inflation_rate = reward_rate = fee_revenue = None
                 for metric in metrics:
                     if metric['metricKey'] == 'inflation_rate':
                         inflation_rate = metric['defaultValue']
                     elif metric['metricKey'] == 'reward_rate':
                         reward_rate = metric['defaultValue']
-                    elif metric['metricKey'] == 'real_reward_rate':
-                        real_reward_rate = metric['defaultValue']
-                    elif metric['metricKey'] == 'staking_ratio':
-                        staking_ratio = metric['defaultValue']
-                    elif metric['metricKey'] == 'total_validators':
-                        total_validators = metric['defaultValue']
+                    elif metric['metricKey'] == 'fee_revenue':
+                        fee_revenue = metric['defaultValue']
 
-                success = all([asset.get('name'), asset.get('slug'), asset.get('symbol'), inflation_rate, reward_rate, real_reward_rate, staking_ratio, total_validators])
+                success = all([asset.get('name'), asset.get('slug'), asset.get('symbol'), inflation_rate, reward_rate, fee_revenue])
                 return {
                     'inflation_rate': inflation_rate,
                     'reward_rate': reward_rate,
-                    'real_reward_rate': real_reward_rate,
-                    'staking_ratio': staking_ratio,
-                    'total_validators': total_validators,
+                    'annualized_revenue_fee': fee_revenue,
                     'success': success
                 }
 
@@ -64,19 +68,18 @@ def get_staking_rewards_data(symbol):
                 return {'message': 'No assets found', 'success': False}
 
         else:
-            return {'message': response.content, 'status_code': response.status_code, 'success': False}
+            return {'message': str(response.content), 'status_code': response.status_code, 'success': False}
 
     except Exception as e:
         return {'message': str(e), 'success': False}
 
 
+
 # ---------Example usage------
-# result = get_staking_rewards_data('eth')
-# print(result)
+# result = get_staking_rewards_data('sol')
+# print('result: ', result)
     
 # ------ Data retrieve-------
 # inflation_rate
-# reward_rate
-# real_reward_rate
-# staking_ratio
-# total_validators
+# reward_rate - APR
+# revenue model
