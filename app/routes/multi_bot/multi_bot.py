@@ -6,7 +6,7 @@ from config import Token, session
 multi_bot_bp = Blueprint('multi_bot', __name__)
 
 # Activates the Bot
-@multi_bot_bp.route('/activate/ip_bot', methods=['POST'])
+@multi_bot_bp.route('/activate/multi_bot', methods=['POST'])
 def ip_bot():
     try:
         token_name = request.args.get('token_name')
@@ -88,75 +88,14 @@ def get_token():
 
 
 
-
-
-
-
-
-
-
-# @index_bp.route('/index/activate', methods=['POST'])
-# def activate_index_bot():
-#     try:
-#         sh_url = request.get_json()
-
-#         if not sh_url:
-#             return jsonify({'message': 'Google sheets URL expected', 'status': 404}), 404
-        
-#         # coins, coins_status = get_spreadsheet_coinsV2(sh_url=sh_url)
-        
-#         # if coins_status != 200:
-#         #     return jsonify({'message': coins, 'status': 404}), 404
-        
-#         # get_once(coins, sh_url)
-#         # get_once_a_day(coins, sh_url)
-#         # get_once_a_month(coins, sh_url)
-                   
-#         # scheduler.add_job(get_once, run_date=datetime.now(), id=f'{sh_url + str(0)}',  args=[coins, sh_url])
-#         # scheduler.add_job(get_once_a_day, 'interval', id=f'{sh_url + str(1)}', days=1, args=[coins, sh_url], next_run_time=datetime.now(), replace_existing=True)
-#         # scheduler.add_job(get_once_a_month, 'interval', id=f'{sh_url + str(2)}', days=30, args=[coins, sh_url], next_run_time=datetime.now(), replace_existing=True)
-  
-#         jobs = scheduler.get_jobs()
-#         jobs_data = [job.id[:-1] for job in jobs]
-        
-#         unique_items = list(set(jobs_data))
-#         activation_date = "Activation date: " + str(datetime.now())
-
-#         formatted_items = [f"{activation_date}\nSpreadsheet URL: {url}" for url in unique_items]
-#         result = '\n\n'.join(formatted_items)
-
-#         return jsonify({'message': f'{result}', 'status': 200}), 200
-
-#     except Exception as e:
-#         print(str(e))
-#         return jsonify({'message': f'Error activating spreadsheet, {str(e)}', 'status': 500}), 500
+# Get tokens data
+@multi_bot_bp.route('/get/tokens', methods=['GET'])
+def get_all_tokens():
+    try:
+        tokens = session.query(Token).order_by(Token.created_at).all()
+        serialized_tokens = [token.as_dict() for token in tokens]
+        return jsonify({'response': serialized_tokens, 'success': True}), 200
     
-
-# @index_bp.route('/index/deactivate', methods=['POST'])
-# def deactivate_index_bot():
-#     try:
-#         sh_url = request.get_json()
-
-#         if not sh_url:
-#             return jsonify({'message': 'Google sheets URL expected', 'status': 404}), 404
-        
-#         for i in range(2):
-#             index = i + 1
-#             scheduler.remove_job(f'{sh_url + str(index)}') 
-
-#         jobs = scheduler.get_jobs()
-#         jobs_data = [job.id[:-1] for job in jobs]
-        
-#         unique_items = list(set(jobs_data))
-#         activation_date = "Activation date: " + str(datetime.now())
-
-#         formatted_items = [f"{activation_date}\nSpreadsheet URL: {url}" for url in unique_items]
-#         result = '\n\n'.join(formatted_items)
-
-#         return jsonify({'message': f'{result}', 'status': 200}), 200
-    
-#     except JobLookupError as e:
-#         return jsonify({'message': 'No spreadsheet was found', 'status': 500}), 500
-    
-#     except Exception as e:
-#         return jsonify({'message': f'Error while deactivating Index Bot: {str(e)}', 'status': 500}), 500
+    except Exception as e:
+        # If an exception occurs, return an error response
+        return jsonify({'response': str(e), 'success': False}), 500

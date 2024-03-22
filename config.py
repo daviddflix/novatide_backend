@@ -2,8 +2,9 @@
 
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, Column, Integer, String, Float
+from sqlalchemy import create_engine, Column, Integer, String, Float, TIMESTAMP
 from sqlalchemy.ext.declarative import declarative_base
 
 load_dotenv()
@@ -53,6 +54,11 @@ class Token(Base):
     total_volume = Column(Float, default=None)
     website = Column(String, default=None)
     description = Column(String, default=None)
+    created_at = Column(TIMESTAMP, default=datetime.now)
+    updated_at = Column(TIMESTAMP, default=datetime.now)
+
+    def as_dict(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
 
 Base.metadata.create_all(engine)

@@ -1,6 +1,21 @@
 import requests
 from datetime import datetime, timedelta
-from app.services.coingecko.coingecko import BASE_URL, headers
+# from app.services.coingecko.coingecko import BASE_URL, headers
+
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from the .env file
+load_dotenv()
+COINGECKO_API_KEY = os.getenv("COINGECKO_API_KEY")
+
+BASE_URL = 'https://pro-api.coingecko.com/api/v3'
+
+headers = {
+            "Content-Type": "application/json",
+            "x-cg-pro-api-key": COINGECKO_API_KEY,
+        }
+    
 
 # Get today's date
 current_date = datetime.now()
@@ -30,7 +45,7 @@ def get_token_data(coin):
         formatted_coin = str(coin).casefold().strip()
         response = requests.get(f'{BASE_URL}/coins/{formatted_coin}', headers=headers)
         historical_response = requests.get(f'{BASE_URL}/coins/{formatted_coin}/history?date={formatted_date}', headers=headers)
-
+      
         if response.status_code == 200 and historical_response.status_code == 200:
             response = response.json()
             historical_response = historical_response.json()
@@ -92,8 +107,8 @@ def get_token_data(coin):
                 and 'usd' in response['market_data']['fully_diluted_valuation'] else None
 
             price_a_year_ago = historical_response['market_data']['current_price']['usd']\
-                if 'market_data' in response and 'current_price' in response['market_data']\
-                and 'usd' in response['market_data']['current_price'] else None
+                if 'market_data' in historical_response and 'current_price' in historical_response['market_data']\
+                and 'usd' in historical_response['market_data']['current_price'] else None
 
             price_change_percentage_1y = response['market_data']['price_change_percentage_1y']\
                 if 'market_data' in response and 'price_change_percentage_1y' in response['market_data'] else None
@@ -128,3 +143,4 @@ def get_token_data(coin):
         return {'response': str(e), 'success': False}
 
 
+print(get_token_data('wojak'))

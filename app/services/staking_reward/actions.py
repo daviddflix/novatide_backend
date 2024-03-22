@@ -1,14 +1,5 @@
 import requests
-# from app.services.staking_reward.staking_reward import STAKING_REWARD_BASE_URL, STAKING_REWARD_API_KEY
-
-import os
-from dotenv import load_dotenv
-
-# Load environment variables from the .env file
-load_dotenv()
-
-STAKING_REWARD_API_KEY = os.getenv("STAKING_REWARD_API_KEY")
-STAKING_REWARD_BASE_URL = "https://api.stakingrewards.com/public/query"
+from app.services.staking_reward.staking_reward import STAKING_REWARD_BASE_URL, STAKING_REWARD_API_KEY
 
 
 def get_staking_rewards_data(symbol):
@@ -41,7 +32,6 @@ def get_staking_rewards_data(symbol):
 
         if response.status_code == 200:
             result = response.json()
-         
             assets = result.get('data', {}).get('assets', [])
             if assets:
                 asset = assets[0]
@@ -76,7 +66,7 @@ def get_staking_rewards_data(symbol):
 
 
 # ---------Example usage------
-# result = get_staking_rewards_data('sol')
+# result = get_staking_rewards_data('stmatic')
 # print('result: ', result)
     
 # ------ Data retrieve-------

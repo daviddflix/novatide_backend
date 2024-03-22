@@ -11,18 +11,17 @@ def activate_ip_bot(token_name, analysis_prompt):
     if not token_name:
         return {'response': 'Token name is required', 'success': False}
     
-    formatted_token_name = str(token_name).casefold()
+    formatted_token_name = str(token_name).casefold().strip()
+  
     coin_analysis_prompt = f"Write a short paragraph (maximum 400 characters) explaining the {formatted_token_name} protocol, the problem it is trying to address and its main use cases."
     if analysis_prompt:
         coin_analysis_prompt = str(analysis_prompt).casefold()
 
     try: 
 
-        gpt_response=ask_chatgpt(coin_analysis_prompt)
-        perplexity_response=perplexity_api_request(coin_analysis_prompt)
+        gpt_response=ask_chatgpt(coin_analysis_prompt, model="gpt-4-0125-preview")
+        perplexity_response=perplexity_api_request(coin_analysis_prompt, "codellama-70b-instruct")
         coingecko_response=get_token_data(formatted_token_name)
-
-        # if gpt_response['success'] and coingecko_response['success'] and perplexity_response['success']:
 
         token_symbol = coingecko_response['symbol'] if coingecko_response['success'] else formatted_token_name
         
