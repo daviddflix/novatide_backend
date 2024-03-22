@@ -38,6 +38,8 @@ def get_token_data(coin):
             id = response.get('id')
             symbol = response.get('symbol')
 
+            logo = response['image']['small'] if 'image' in response and 'small' in response['image'] else None
+
             market_cap_usd = response['market_data']['market_cap']['usd'] \
                 if 'market_data' in response and 'market_cap' in response['market_data'] \
                 and 'usd' in response['market_data']['market_cap'] else None
@@ -99,6 +101,7 @@ def get_token_data(coin):
             return {
                 'id': id,
                 'symbol': symbol,
+                'logo': logo,
                 'market_cap_usd': market_cap_usd,
                 'total_volume': total_volume,
                 'website': website,
@@ -123,4 +126,5 @@ def get_token_data(coin):
             return {'response': response.content.decode('utf-8'), 'success': False}
     except Exception as e:
         return {'response': str(e), 'success': False}
+
 

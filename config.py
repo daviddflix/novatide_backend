@@ -24,6 +24,7 @@ class Token(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     gecko_id = Column(String, nullable=False)
+    logo = Column(String, default=None)
     tokenname = Column(String, nullable=False)
     symbol = Column(String, nullable=False)
     analysis = Column(String, default=None)

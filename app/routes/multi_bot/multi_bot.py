@@ -33,14 +33,14 @@ def get_token():
             return jsonify({'response': 'Data is required', 'success': False}), 400
 
         token_name = data.get('token_name', None)
-        token_symbol = data.get('token_symbol', None)
+        token_symbol = data.get('token_symbol', '')
         watchlist = data.get('watchlist', False)
 
-        if not token_name or not token_symbol:
-            return jsonify({'response': 'Token name and symbol are required', 'success': False}), 400
+        if not token_name:
+            return jsonify({'response': 'Token name is required', 'success': False}), 400
         
         if watchlist and watchlist is not isinstance(watchlist, bool):
-            return jsonify({'response': 'watchlist must be a boolean value', 'success': False}), 400
+            return jsonify({'response': 'Watchlist must be a boolean value', 'success': False}), 400
         
         response = get_list_of_coins()
         if response['success']:
