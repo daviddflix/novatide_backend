@@ -1,13 +1,15 @@
 from flask import Blueprint, request, jsonify
-from app.bots.multi_bot.multi_bot import activate_ip_bot
+from app.bots.multi_bot.multi_bot import get_all_available_data, activate_multi_bot
 from app.services.coingecko.actions import get_list_of_coins
 from config import Token, session
+from app.scheduler import scheduler
+from datetime import datetime
 
 multi_bot_bp = Blueprint('multi_bot', __name__)
 
-# Activates the Bot
+# Get all availabel data
 @multi_bot_bp.route('/activate/multi_bot', methods=['POST'])
-def ip_bot():
+def get_data_tokens():
     try:
         token_name = request.args.get('token_name')
         analysis_prompt = request.args.get('analysis_prompt', None)
@@ -15,13 +17,38 @@ def ip_bot():
         if not token_name:
             return jsonify({'response': 'Token name is required', 'success': False}), 400
         
-        result = activate_ip_bot(token_name, analysis_prompt)
+        result = get_all_available_data(token_name, analysis_prompt)
         if result['success']:
             return jsonify({'response': result, 'success': True}), 200
         return jsonify({'response': result['response'], 'success': False}), 404
     except Exception as e:
         return jsonify({'response': str(e), 'success': False}), 500
 
+
+# Activates the BOT
+@multi_bot_bp.route('/multi-bot', methods=['POST'])
+def ip_bot():
+    try:
+        command = request.args.get('command')
+
+        if not command:
+            return jsonify({'response': 'Command is required', 'success': False}), 400
+        
+        if command == 'activate':
+            activate_multi_bot()
+            # scheduler.add_job(activate_multi_bot, 'interval', 
+            #                   minutes=60, id='nv bot', 
+            #                   replace_existing=True, 
+            #                   next_run_time=datetime.now()
+            #                   max_instances=2)
+
+            return jsonify({'response': 'Bot activated', 'success': True}), 200
+        elif command == 'deactivate':
+            return jsonify({'response': 'Bot deactivated', 'success': True}), 200
+        else:
+            return jsonify({'response': 'Command not valid', 'success': False}), 400
+    except Exception as e:
+        return jsonify({'response': str(e), 'success': False}), 500
 
 # Get the ID of the token from CoinGecko
 @multi_bot_bp.route('/search/token', methods=['POST'])
@@ -98,4 +125,28 @@ def get_all_tokens():
     
     except Exception as e:
         # If an exception occurs, return an error response
+        return jsonify({'response': str(e), 'success': False}), 500
+    
+
+
+# Delete tokens
+@multi_bot_bp.route('/delete/tokens', methods=['DELETE'])
+def delete_tokens():
+    try:
+        if not request.json or 'ids' not in request.json:
+            return jsonify({'response': 'No JSON data or IDs provided', 'success': False}), 400
+        
+        ids = request.json['ids']
+        
+        # Check if the IDs array is empty
+        if not ids:
+            return jsonify({'response': 'IDs array is empty', 'success': False}), 400
+        
+        # Delete tokens with the specified IDs
+        deleted_count = session.query(Token).filter(Token.id.in_(ids)).delete(synchronize_session=False)
+        session.commit()
+        
+        return jsonify({'response': f'{deleted_count} tokens deleted successfully', 'success': True}), 200
+    
+    except Exception as e:
         return jsonify({'response': str(e), 'success': False}), 500

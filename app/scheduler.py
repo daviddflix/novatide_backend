@@ -11,6 +11,7 @@ logs_channel_id = "C06FTS38JRX"
 if scheduler.state != 1:
     print('-----Scheduler started-----')
     scheduler.start()
+    
 
 def job_executed(event): 
     job_id = str(event.job_id).capitalize()

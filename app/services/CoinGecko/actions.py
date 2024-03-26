@@ -143,4 +143,4 @@ def get_token_data(coin):
         return {'response': str(e), 'success': False}
 
 
-print(get_token_data('wojak'))
+# print(get_token_data('wojak'))
