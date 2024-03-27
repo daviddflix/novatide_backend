@@ -8,7 +8,7 @@ from sqlalchemy import or_
 
 multi_bot_bp = Blueprint('multi_bot', __name__)
 
-# Get all availabel data
+# Get all available data
 @multi_bot_bp.route('/activate/multi_bot', methods=['POST'])
 def get_data_tokens():
     try:
@@ -51,7 +51,9 @@ def ip_bot():
     except Exception as e:
         return jsonify({'response': str(e), 'success': False}), 500
 
-# Get the ID of the token from CoinGecko
+
+
+# Get the ID of the token from CoinGecko and add the token to a watchlist if specified.
 @multi_bot_bp.route('/search/token', methods=['POST'])
 def get_token():
     try:

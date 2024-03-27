@@ -1,6 +1,6 @@
-# FA Bot
+# MULTI-PURPOSE BOT
 
-FA Bot is a Python project for getting relevant data about the crypto world.
+This Bot is a Python project for getting relevant data about the crypto world.
 
 ## Installation
 

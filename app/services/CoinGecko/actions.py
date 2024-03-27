@@ -52,6 +52,7 @@ def get_token_data(coin):
 
             id = response.get('id')
             symbol = response.get('symbol')
+            description = response['description']['en'] if 'description' in response and 'en' in response['description'] else None
 
             logo = response['image']['small'] if 'image' in response and 'small' in response['image'] else None
 
@@ -117,6 +118,7 @@ def get_token_data(coin):
                 'id': id,
                 'symbol': symbol,
                 'logo': logo,
+                'description': description,
                 'market_cap_usd': market_cap_usd,
                 'total_volume': total_volume,
                 'website': website,

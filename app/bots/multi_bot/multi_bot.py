@@ -31,6 +31,45 @@ def get_all_available_data(token_name, analysis_prompt):
         defillama_response = get_protocol_tvl(token_symbol)
         defillama_chains_response = get_llama_chains(token_symbol)
 
+        token = session.query(Token).filter_by(gecko_id=formatted_token_name).first()
+        if token:
+            if gpt_response['success']:
+                token.analysis_1 = gpt_response['response']
+            if perplexity_response['success']:
+                token.analysis_2 = perplexity_response['response']
+            if coinmarketcap_response['success']:
+                token.whitepaper = coinmarketcap_response['whitepaper']
+            if defillama_chains_response['success']:
+                token.tvl = defillama_chains_response['tvl']
+            if staking_reward_response['success']:
+                token.inflation_rate = staking_reward_response['inflation_rate']
+                token.reward_rate = staking_reward_response['reward_rate']
+                token.annualized_revenue_fee = staking_reward_response['annualized_revenue_fee']
+            if coingecko_response['success']:
+                token.ath = coingecko_response['ath']
+                token.logo = coingecko_response['logo']
+                token.market_cap_usd = coingecko_response['market_cap_usd']
+                token.total_volume = coingecko_response['total_volume']
+                token.website = coingecko_response['website']
+                token.total_supply = coingecko_response['total_supply']
+                token.circulating_supply = coingecko_response['circulating_supply']
+                token.percentage_circulating_supply = coingecko_response['percentage_circulating_supply']
+                token.max_supply = coingecko_response['max_supply']
+                token.supply_model = coingecko_response['supply_model']
+                token.current_price = coingecko_response['current_price']
+                token.price_a_year_ago = coingecko_response['price_a_year_ago']
+                token.price_change_percentage_1y = coingecko_response['price_change_percentage_1y']
+                token.ath_change_percentage = coingecko_response['ath_change_percentage']
+                token.coingecko_link = coingecko_response['coingecko_link']
+                token.categories = coingecko_response['categories']
+                token.chains = coingecko_response['chains']
+                token.contracts = coingecko_response['contracts']
+                token.description = coingecko_response['description']
+                token.fully_diluted_valuation = coingecko_response['fully_diluted_valuation']
+                token.updated_at = datetime.now()
+                
+            session.commit()
+
         final_response = {
             'analysis_1': gpt_response,
             'analysis_2': perplexity_response,
