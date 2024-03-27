@@ -1,9 +1,10 @@
 from flask import Blueprint, request, jsonify
 from app.bots.multi_bot.multi_bot import get_all_available_data, activate_multi_bot
 from app.services.coingecko.actions import get_list_of_coins
-from config import Token, session
+from config import Token, session, Watchlist
 from app.scheduler import scheduler
 from datetime import datetime
+from sqlalchemy import or_
 
 multi_bot_bp = Blueprint('multi_bot', __name__)
 
@@ -61,13 +62,11 @@ def get_token():
 
         token_name = data.get('token_name', None)
         token_symbol = data.get('token_symbol', '')
-        watchlist = data.get('watchlist', False)
+        watchlist_name = data.get('watchlist', None)
 
         if not token_name:
             return jsonify({'response': 'Token name is required', 'success': False}), 400
         
-        if watchlist and watchlist is not isinstance(watchlist, bool):
-            return jsonify({'response': 'Watchlist must be a boolean value', 'success': False}), 400
         
         response = get_list_of_coins()
         if response['success']:
@@ -88,32 +87,36 @@ def get_token():
             
             if found_token:
                 final_response = {'response': found_token, 'success': True}
-                if watchlist == True:
+                if watchlist_name:
                     found_token_data = session.query(Token).filter_by(gecko_id=found_token['token_id']).first()
-                
-                    if not found_token_data:
+                    watchlist = session.query(Watchlist).filter_by(name=watchlist_name).first()
+
+                    if watchlist and not found_token_data:
                         new_token=Token(
                             tokenname=found_token['token_name'],
                             symbol=found_token['token_symbol'],
                             gecko_id=found_token['token_id'],
                         )
+                        watchlist.tokens.append(new_token)
                         session.add(new_token)
                         session.commit()
-                       
+                    
                         final_response['saved_to_db'] = "Token added to watchlist"
                     else:
                         final_response['saved_to_db'] = "Token already exist"
-
-                return jsonify(final_response), 200
+                        
+                    return jsonify(final_response), 200
+                else:
+                    return jsonify(final_response), 200
             else:
                 return jsonify({'response': 'Token not found', 'success': False}), 404
         else:
             return jsonify({'response': response.get('response', 'Unknown error'), 'success': False}), 500
     except Exception as e:
+        session.rollback()
         return jsonify({'response': str(e), 'success': False}), 500
+        
     
-
-
 
 # Get tokens data
 @multi_bot_bp.route('/get/tokens', methods=['GET'])
@@ -143,10 +146,20 @@ def delete_tokens():
             return jsonify({'response': 'IDs array is empty', 'success': False}), 400
         
         # Delete tokens with the specified IDs
-        deleted_count = session.query(Token).filter(Token.id.in_(ids)).delete(synchronize_session=False)
+        for token_id in ids:
+            token = session.query(Token).get(token_id)
+            if token:
+                # Remove associations first
+                for watchlist in token.watchlists:
+                    watchlist.tokens.remove(token)
+                # Then delete the token
+                session.delete(token)
+        
         session.commit()
         
-        return jsonify({'response': f'{deleted_count} tokens deleted successfully', 'success': True}), 200
+        return jsonify({'response': f'{len(ids)} tokens deleted successfully', 'success': True}), 200
     
     except Exception as e:
+        session.rollback()
+        print(e)
         return jsonify({'response': str(e), 'success': False}), 500

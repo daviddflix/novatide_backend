@@ -4,7 +4,8 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, Column, Integer, String, Float, TIMESTAMP
+from sqlalchemy.orm import relationship
+from sqlalchemy import create_engine, Column, Integer, String, Float, TIMESTAMP, ForeignKey, Table
 from sqlalchemy.ext.declarative import declarative_base
 
 load_dotenv()
@@ -19,6 +20,27 @@ db_url = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 engine = create_engine(db_url, pool_size=30, max_overflow=20)
 
 Base = declarative_base()
+
+# Association table for the many-to-many relationship
+watchlist_token_association = Table('watchlist_token', Base.metadata,
+    Column('watchlist_id', Integer, ForeignKey('watchlist.id'), primary_key=True),
+    Column('token_id', Integer, ForeignKey('tokens.id'), primary_key=True)
+)
+
+class Watchlist(Base):
+    __tablename__ = 'watchlist'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    description = Column(String, default=None)
+    created_at = Column(TIMESTAMP, default=datetime.now)
+    updated_at = Column(TIMESTAMP, default=datetime.now)
+
+    # Relationship to Token class
+    tokens = relationship('Token', secondary=watchlist_token_association, back_populates='watchlists')
+
+    def as_dict(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
 class Token(Base):
     __tablename__ = 'tokens'
@@ -57,10 +79,34 @@ class Token(Base):
     created_at = Column(TIMESTAMP, default=datetime.now)
     updated_at = Column(TIMESTAMP, default=datetime.now)
 
+    # Relationship to Watchlist class
+    watchlists = relationship('Watchlist', secondary=watchlist_token_association, back_populates='tokens')
+
     def as_dict(self):
         return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+    
+
+    # Association Table for the many-to-many relationship
+    class WatchlistTokenAssociation(Base):
+        __tablename__ = 'watchlist_token_association'
+        watchlist_id = Column(Integer, ForeignKey('watchlist.id'), primary_key=True)
+        token_id = Column(Integer, ForeignKey('tokens.id'), primary_key=True)
 
 
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 session = Session()
+
+
+def create_watchlist(name, description=None):
+    existing_watchlist = session.query(Watchlist).filter(Watchlist.name == name).first()
+    if existing_watchlist:
+        return existing_watchlist.as_dict()
+
+    watchlist = Watchlist(name=name, description=description)
+    session.add(watchlist)
+    session.commit()
+    print('Default watchlist created')
+    return watchlist
+
+create_watchlist(name="standard", description="This watchlist contains tokens with no specific category")

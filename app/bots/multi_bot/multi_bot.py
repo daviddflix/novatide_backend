@@ -86,4 +86,5 @@ def activate_multi_bot():
             return {'response': 'No tokens to analyse', 'success': False}
 
     except Exception as e:
+        session.rollback()
         return {'error': str(e), 'success': False}
