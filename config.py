@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import relationship
-from sqlalchemy import create_engine, Column, Integer, String, Float, TIMESTAMP, ForeignKey, Table
+from sqlalchemy import create_engine, Column, Integer, String, Float, TIMESTAMP, ForeignKey, Table, Enum, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
 load_dotenv()
@@ -26,6 +26,28 @@ watchlist_token_association = Table('watchlist_token', Base.metadata,
     Column('watchlist_id', Integer, ForeignKey('watchlist.id'), primary_key=True),
     Column('token_id', Integer, ForeignKey('tokens.id'), primary_key=True)
 )
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    username = Column(String, nullable=False, unique=True)
+    email = Column(String, nullable=False, unique=True)
+    password_hash = Column(String, nullable=False)
+    is_authenticated = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=False)
+    is_anonymous = Column(Boolean, default=False)
+    role = Column(Enum('admin', 'user', name='user_roles'), nullable=False)  # Restrict input to 'admin' or 'user'
+    created_at = Column(TIMESTAMP, default=datetime.now)
+    updated_at = Column(TIMESTAMP, default=datetime.now)
+
+    def as_dict(self):
+        exclude_columns = ['password_hash']
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns if column.name not in exclude_columns}
+    
+    def get_id(self):
+        return str(self.id)
+    
 
 class Watchlist(Base):
     __tablename__ = 'watchlist'
@@ -94,11 +116,13 @@ class Token(Base):
         token_id = Column(Integer, ForeignKey('tokens.id'), primary_key=True)
 
 
+
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 session = Session()
 
 
+# Creates a default watchlist
 def create_watchlist(name, description=None):
     existing_watchlist = session.query(Watchlist).filter(Watchlist.name == name).first()
     if existing_watchlist:
