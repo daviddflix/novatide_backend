@@ -29,11 +29,12 @@ def ask_perplexity():
     try:
         model = request.form.get('model', 'codellama-34b-instruct')
         prompt = request.form.get('prompt')
+        content = request.form.get('content')
        
         if not prompt:
             return 'Prompt is required', 404
 
-        result = perplexity_api_request(question=prompt, model=model)
+        result = perplexity_api_request(prompt=prompt, model=model, content=content)
        
         if result['success']:
             return result['response'], 200

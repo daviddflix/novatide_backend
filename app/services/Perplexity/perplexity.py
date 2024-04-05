@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 
-def perplexity_api_request(question, model):
+def perplexity_api_request(prompt, model, content):
     
     url = "https://api.perplexity.ai/chat/completions"
 
@@ -14,11 +14,11 @@ def perplexity_api_request(question, model):
         "messages": [
             {
                 "role": "system",
-                "content": "Be precise and concise."
+                "content": prompt
             },
             {
                 "role": "user",
-                "content": question
+                "content": content
             }
         ]
     }
@@ -42,11 +42,11 @@ def perplexity_api_request(question, model):
             if answer_content:
                 return {'response': answer_content, 'success': True}
             else:
-                print(f"No answer found for this question: {question}. Error: {assistant_message}")
-                return {'response': f"No answer found for this question: {question}. Error: {assistant_message}", 'success': False}
+                print(f"No answer found for this prompt: {prompt}. Error: {assistant_message}")
+                return {'response': f"No answer found for this prompt: {prompt}. Error: {assistant_message}", 'success': False}
         else:
-            print(f"No choices found for this question: {question} - in the API response.")
-            return {'response': f"No choices found for this question: {question}, Error: {choices}", 'success': False}
+            print(f"No choices found for this prompt: {prompt} - in the API response.")
+            return {'response': f"No choices found for this prompt: {prompt}, Error: {choices}", 'success': False}
     
     except requests.exceptions.RequestException as err:
         print(f"Error during API request: {err}")
