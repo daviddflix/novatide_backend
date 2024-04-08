@@ -1,6 +1,6 @@
 from flask import Blueprint, request
-from app.services.openAI.openAI import ask_chatgpt
-from app.services.perplexity.perplexity import perplexity_api_request
+from app.services.OpenAI.openAI import ask_chatgpt
+from app.services.Perplexity.perplexity import perplexity_api_request
 
 ai_bp = Blueprint('openai', __name__)
 

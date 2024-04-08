@@ -22,7 +22,7 @@ engine = create_engine(db_url, pool_size=30, max_overflow=20)
 Base = declarative_base()
 
 # Association table for the many-to-many relationship
-watchlist_token_association = Table('watchlist_token', Base.metadata,
+watchlist_token_association = Table('watchlist_token_association', Base.metadata,
     Column('watchlist_id', Integer, ForeignKey('watchlist.id'), primary_key=True),
     Column('token_id', Integer, ForeignKey('tokens.id'), primary_key=True)
 )
@@ -109,11 +109,11 @@ class Token(Base):
         return {column.name: getattr(self, column.name) for column in self.__table__.columns}
     
 
-    # Association Table for the many-to-many relationship
-    class WatchlistTokenAssociation(Base):
-        __tablename__ = 'watchlist_token_association'
-        watchlist_id = Column(Integer, ForeignKey('watchlist.id'), primary_key=True)
-        token_id = Column(Integer, ForeignKey('tokens.id'), primary_key=True)
+# # Association Table for the many-to-many relationship
+# class WatchlistTokenAssociation(Base):
+#     __tablename__ = 'watchlist_token_association'
+#     watchlist_id = Column(Integer, ForeignKey('watchlist.id'), primary_key=True)
+#     token_id = Column(Integer, ForeignKey('tokens.id'), primary_key=True)
 
 
 
@@ -123,7 +123,7 @@ session = Session()
 
 
 # Creates a default watchlist
-def create_watchlist(name, description=None):
+def create_default_watchlist(name, description=None):
     existing_watchlist = session.query(Watchlist).filter(Watchlist.name == name).first()
     if existing_watchlist:
         return existing_watchlist.as_dict()
@@ -131,7 +131,27 @@ def create_watchlist(name, description=None):
     watchlist = Watchlist(name=name, description=description)
     session.add(watchlist)
     session.commit()
-    print('Default watchlist created')
+    print('---Default watchlist created---')
     return watchlist
 
-create_watchlist(name="standard", description="This watchlist contains tokens with no specific category")
+
+# Creates a default admin user
+def create_default_admin(username, email, role, password):
+    existing_default_admin = session.query(User).filter(User.username == username).first()
+    if existing_default_admin:
+        return existing_default_admin.as_dict()
+
+    new_admin = User(username=username,
+                     email=email,
+                     role=role,
+                     password_hash=password
+                     )
+    session.add(new_admin)
+    session.commit()
+    print('---Default admin user created---')
+    return 'Default admin user created'
+
+
+# Executes default records
+create_default_watchlist(name="standard", description="This watchlist contains tokens with no specific category")
+create_default_admin(username="fati", email="team@novatidelabs.com", role="admin", password="Novatide2023!")

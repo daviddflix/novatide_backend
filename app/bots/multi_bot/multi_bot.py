@@ -1,8 +1,8 @@
-from app.services.openAI.openAI import ask_chatgpt
-from app.services.perplexity.perplexity import perplexity_api_request
-from app.services.coingecko.actions import get_token_data
+from app.services.OpenAI.openAI import ask_chatgpt
+from app.services.Perplexity.perplexity import perplexity_api_request
+from app.services.CoinGecko.actions import get_token_data
 from app.services.staking_reward.actions import get_staking_rewards_data
-from app.services.coinMarketCap.coinmarketcap import get_crypto_metadata
+from app.services.CoinMarketcap.coinmarketcap import get_crypto_metadata
 from app.services.defillama.defillama import get_protocol_tvl, get_llama_chains
 from config import session, Token
 from datetime import datetime
@@ -21,7 +21,7 @@ def get_all_available_data(token_name, analysis_prompt):
 
     try: 
         gpt_response=ask_chatgpt(coin_analysis_prompt, model="gpt-4-0125-preview")
-        perplexity_response=perplexity_api_request(coin_analysis_prompt, "codellama-70b-instruct")
+        perplexity_response=perplexity_api_request(content=coin_analysis_prompt, model="codellama-70b-instruct")
         coingecko_response=get_token_data(formatted_token_name)
 
         token_symbol = coingecko_response['symbol'] if coingecko_response['success'] else formatted_token_name

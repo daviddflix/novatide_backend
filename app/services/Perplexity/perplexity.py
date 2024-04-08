@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 
-def perplexity_api_request(prompt, model, content):
+def perplexity_api_request(model, content, prompt="Be precise and concise"):
     
     url = "https://api.perplexity.ai/chat/completions"
 
@@ -51,6 +51,3 @@ def perplexity_api_request(prompt, model, content):
     except requests.exceptions.RequestException as err:
         print(f"Error during API request: {err}")
         return {'response': f"Error during API request: {err}", 'success': False}
-
-
-# print(perplexity_api_request('hola'))

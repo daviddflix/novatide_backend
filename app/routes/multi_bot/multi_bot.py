@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.bots.multi_bot.multi_bot import get_all_available_data, activate_multi_bot
-from app.services.coingecko.actions import get_list_of_coins
+from app.services.CoinGecko.actions import get_list_of_coins
 from config import Token, session, Watchlist
 from app.scheduler import scheduler
 from datetime import datetime
