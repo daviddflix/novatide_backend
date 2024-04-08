@@ -109,13 +109,6 @@ class Token(Base):
         return {column.name: getattr(self, column.name) for column in self.__table__.columns}
     
 
-# # Association Table for the many-to-many relationship
-# class WatchlistTokenAssociation(Base):
-#     __tablename__ = 'watchlist_token_association'
-#     watchlist_id = Column(Integer, ForeignKey('watchlist.id'), primary_key=True)
-#     token_id = Column(Integer, ForeignKey('tokens.id'), primary_key=True)
-
-
 
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
