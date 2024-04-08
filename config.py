@@ -154,4 +154,3 @@ def create_default_admin(username, email, role, password):
 
 # Executes default records
 create_default_watchlist(name="standard", description="This watchlist contains tokens with no specific category")
-create_default_admin(username="fati", email="team@novatidelabs.com", role="admin", password="Novatide2023!")
