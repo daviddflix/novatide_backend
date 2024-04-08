@@ -18,6 +18,9 @@ def login():
 
             if not user or user.password_hash != password:
                 return jsonify({'error': 'Invalid username or password'}), 401
+            
+            if user.is_active:
+                return jsonify({'error': 'Another session of this user is already active. Please log out from the other session if you wish to log in here.'}), 401
 
             user.is_active = True
             user.is_authenticated = True
