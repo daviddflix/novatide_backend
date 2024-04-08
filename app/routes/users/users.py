@@ -36,6 +36,7 @@ def create_user():
 
             session.add(new_user)
             session.commit()
+            
 
             return jsonify({'message': 'User created successfully'}), 201
     
@@ -60,4 +61,47 @@ def delete_user(user_id):
             return jsonify({'message': 'User deleted successfully'}), 200
     
     except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+
+# Get all users
+@users_bp.route('/get_all_users', methods=['GET'])
+def get_all_users():
+    try:
+        with Session() as session:
+            users = session.query(User).all()
+            user_list = [user.as_dict() for user in users]
+            return jsonify({'users': user_list}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+    
+@users_bp.route('/users/<int:user_id>/change_password', methods=['PUT'])
+def change_password(user_id):
+    try:
+        data = request.get_json()
+        new_password = data.get('new_password')
+
+        if not new_password:
+            return jsonify({'error': 'Please provide a new password'}), 400
+
+        with Session() as session:
+            # Check if the user exists
+            user = session.query(User).filter_by(id=user_id).first()
+            if not user:
+                return jsonify({'error': 'User not found'}), 404
+
+            # Update the password and update the updated_at field
+            user.password_hash = new_password
+            user.updated_at = datetime.now()
+
+            session.commit()
+
+            return jsonify({'message': 'Password changed successfully'}), 200
+    
+    except Exception as e:
+        with Session() as session:
+            session.rollback()
         return jsonify({'error': str(e)}), 500
