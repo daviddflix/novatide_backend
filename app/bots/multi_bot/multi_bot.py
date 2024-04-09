@@ -4,7 +4,7 @@ from app.services.CoinGecko.actions import get_token_data
 from app.services.staking_reward.actions import get_staking_rewards_data
 from app.services.CoinMarketcap.coinmarketcap import get_crypto_metadata
 from app.services.defillama.defillama import get_protocol_tvl, get_llama_chains
-from config import session, Token
+from config import session, Token, Session
 from datetime import datetime
 
 
@@ -26,8 +26,8 @@ def get_all_available_data(token_name, analysis_prompt):
 
         token_symbol = coingecko_response['symbol'] if coingecko_response['success'] else formatted_token_name
         
-        staking_reward_response = get_staking_rewards_data(token_symbol)
         coinmarketcap_response = get_crypto_metadata(token_symbol)
+        staking_reward_response = get_staking_rewards_data(token_symbol)
         defillama_response = get_protocol_tvl(token_symbol)
         defillama_chains_response = get_llama_chains(token_symbol)
 
@@ -87,43 +87,61 @@ def get_all_available_data(token_name, analysis_prompt):
 
 def activate_multi_bot():
     try:
-        tokens = session.query(Token).order_by(Token.created_at).all()
-        
-        ids = []
-        for token in tokens:
-            ids.append(token.gecko_id)
+        with Session() as session:
+            tokens = session.query(Token).order_by(Token.created_at).all()
+            
+            tokens_data = []
+            for token in tokens:
+                tokens_data.append({'id': token.gecko_id, 'symbol': token.symbol})
 
-        if ids:
-            print('IDs:', ids)
-            for id in ids:
-                coingecko_response=get_token_data(id)
-                token = session.query(Token).filter_by(gecko_id=id).first()
-                if coingecko_response['success']:
-                    token.ath = coingecko_response['ath']
-                    token.logo = coingecko_response['logo']
-                    token.market_cap_usd = coingecko_response['market_cap_usd']
-                    token.total_volume = coingecko_response['total_volume']
-                    token.website = coingecko_response['website']
-                    token.total_supply = coingecko_response['total_supply']
-                    token.circulating_supply = coingecko_response['circulating_supply']
-                    token.percentage_circulating_supply = coingecko_response['percentage_circulating_supply']
-                    token.max_supply = coingecko_response['max_supply']
-                    token.supply_model = coingecko_response['supply_model']
-                    token.current_price = coingecko_response['current_price']
-                    token.price_a_year_ago = coingecko_response['price_a_year_ago']
-                    token.price_change_percentage_1y = coingecko_response['price_change_percentage_1y']
-                    token.ath_change_percentage = coingecko_response['ath_change_percentage']
-                    token.coingecko_link = coingecko_response['coingecko_link']
-                    token.categories = coingecko_response['categories']
-                    token.chains = coingecko_response['chains']
-                    token.contracts = coingecko_response['contracts']
-                    token.fully_diluted_valuation = coingecko_response['fully_diluted_valuation']
-                    token.updated_at = datetime.now()
-                session.commit()
-            return {'response': 'Tokens updated', 'success': True}
-        else:
-            return {'response': 'No tokens to analyse', 'success': False}
+            if tokens_data:
+                print('IDs:', tokens_data)
+                for token_data in tokens_data:
+                    token_id = token_data['id']
+                    token_symbol = token_data['symbol']
+                    
+                    coingecko_response=get_token_data(token_id)
+                    coinmarketcap_response = get_crypto_metadata(token_symbol)
+                    staking_reward_response = get_staking_rewards_data(token_symbol)
+                    defillama_chains_response = get_llama_chains(token_symbol)
+                    
+                    existing_token = session.query(Token).filter_by(gecko_id=token_id).first()
+                    if coingecko_response['success'] and existing_token:
+                        existing_token.ath = coingecko_response['ath']
+                        existing_token.logo = coingecko_response['logo']
+                        existing_token.market_cap_usd = coingecko_response['market_cap_usd']
+                        existing_token.total_volume = coingecko_response['total_volume']
+                        existing_token.website = coingecko_response['website']
+                        existing_token.total_supply = coingecko_response['total_supply']
+                        existing_token.circulating_supply = coingecko_response['circulating_supply']
+                        existing_token.percentage_circulating_supply = coingecko_response['percentage_circulating_supply']
+                        existing_token.max_supply = coingecko_response['max_supply']
+                        existing_token.supply_model = coingecko_response['supply_model']
+                        existing_token.current_price = coingecko_response['current_price']
+                        existing_token.price_a_year_ago = coingecko_response['price_a_year_ago']
+                        existing_token.price_change_percentage_1y = coingecko_response['price_change_percentage_1y']
+                        existing_token.ath_change_percentage = coingecko_response['ath_change_percentage']
+                        existing_token.coingecko_link = coingecko_response['coingecko_link']
+                        existing_token.categories = coingecko_response['categories']
+                        existing_token.chains = coingecko_response['chains']
+                        existing_token.contracts = coingecko_response['contracts']
+                        existing_token.fully_diluted_valuation = coingecko_response['fully_diluted_valuation']
+                        existing_token.updated_at = datetime.now()
+                    if coinmarketcap_response['success'] and existing_token:
+                        existing_token.whitepaper = coinmarketcap_response['whitepaper']
+                    if defillama_chains_response['success']:
+                        token.tvl = defillama_chains_response['tvl']
+                    if staking_reward_response['success']:
+                        token.inflation_rate = staking_reward_response['inflation_rate']
+                        token.reward_rate = staking_reward_response['reward_rate']
+                        token.annualized_revenue_fee = staking_reward_response['annualized_revenue_fee']
+                    
+                    session.commit()
+                return {'response': 'Tokens updated', 'success': True}
+            else:
+                return {'response': 'No tokens to analyse', 'success': False}
 
     except Exception as e:
-        session.rollback()
+        with Session() as session:
+            session.rollback()
         return {'error': str(e), 'success': False}

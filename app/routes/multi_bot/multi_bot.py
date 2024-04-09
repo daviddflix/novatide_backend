@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from app.bots.multi_bot.multi_bot import get_all_available_data, activate_multi_bot
 from app.services.CoinGecko.actions import get_list_of_coins
-from config import Token, session, Watchlist
+from config import Token, session, Watchlist, Session, Bot
 from app.scheduler import scheduler
 from datetime import datetime
 from sqlalchemy import or_
@@ -31,26 +31,92 @@ def get_data_tokens():
 def ip_bot():
     try:
         command = request.args.get('command')
+        bot_id = request.args.get('bot_id')
 
-        if not command:
-            return jsonify({'response': 'Command is required', 'success': False}), 400
+        if not command or not bot_id:
+            return jsonify({'response': 'Command and bot ID are required', 'success': False}), 400
         
-        if command == 'activate':
-            activate_multi_bot()
-            # scheduler.add_job(activate_multi_bot, 'interval', 
-            #                   minutes=60, id='nv bot', 
-            #                   replace_existing=True, 
-            #                   next_run_time=datetime.now()
-            #                   max_instances=2)
+        with Session() as session:
+            bot = session.query(Bot).filter(Bot.id == bot_id).first()
+        
+            if command == 'activate':
+                if bot.status:
+                    return jsonify({'response': f'{bot.name} bot is already active', 'success': False}), 400
+            
+                bot.status = True
+                session.commit()
+                scheduler.add_job(activate_multi_bot, 'interval', 
+                                  minutes=bot.interval, id=bot.name, 
+                                  replace_existing=True, 
+                                  max_instances=2)
 
-            return jsonify({'response': 'Bot activated', 'success': True}), 200
-        elif command == 'deactivate':
-            return jsonify({'response': 'Bot deactivated', 'success': True}), 200
-        else:
-            return jsonify({'response': 'Command not valid', 'success': False}), 400
+                return jsonify({'response': 'Bot activated', 'success': True}), 200
+            elif command == 'deactivate':
+                if not bot.status:
+                    return jsonify({'response': f'{bot.name} bot is already deactivated', 'success': False}), 400
+                
+                scheduler.remove_job(bot.name)
+                bot.status = False
+                session.commit()
+                
+                return jsonify({'response': 'Bot deactivated', 'success': True}), 200
+            else:
+                return jsonify({'response': 'Command not valid', 'success': False}), 400
     except Exception as e:
         return jsonify({'response': str(e), 'success': False}), 500
 
+# activate_multi_bot()
+ #   next_run_time=datetime.now(),
+
+ # Get all existing bots.
+@multi_bot_bp.route('/bots', methods=['GET'])
+def get_bots():
+    try:
+        with Session() as session:
+            bots = session.query(Bot).all()
+            bot_list = []
+
+            for bot in bots:
+                bot_dict = bot.as_dict()
+                job = scheduler.get_job(bot.name)
+                bot_dict['next_run_time'] = None
+                if job:
+                    bot_dict['next_run_time'] = job.next_run_time
+                bot_list.append(bot_dict)
+
+            return jsonify({'bots': bot_list}), 200
+    except Exception as e:
+        session.rollback()
+        return jsonify({'error': str(e)}), 500
+    
+
+@multi_bot_bp.route('/multi-bot/edit-interval', methods=['POST'])
+def edit_interval():
+    try:
+        bot_id = request.args.get('bot_id')
+        new_interval = request.args.get('interval')
+
+        if not bot_id or not new_interval:
+            return jsonify({'response': 'Bot ID and new interval are required', 'success': False}), 400
+
+        with Session() as session:
+            bot = session.query(Bot).filter(Bot.id == bot_id).first()
+
+            if not bot:
+                return jsonify({'response': 'Bot not found', 'success': False}), 404
+
+            bot.interval = int(new_interval)
+            session.commit()
+
+            # Reschedule the job with the new interval
+            job = scheduler.get_job(bot.name)
+            if job:
+                scheduler.reschedule_job(job.id, trigger='interval', minutes=bot.interval)
+                return jsonify({'response': 'Interval updated and job rescheduled', 'success': True}), 200
+            else:
+                return jsonify({'response': f'{bot.name} bot is not active yet, please activate first', 'success': False}), 400
+    except Exception as e:
+        return jsonify({'response': str(e), 'success': False}), 500
 
 
 # Get the ID of the token from CoinGecko and add the token to a watchlist if specified.

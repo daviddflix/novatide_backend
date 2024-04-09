@@ -1,5 +1,6 @@
 
-from config import db_url
+from config import db_url, Session, Bot
+from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.services.slack.actions import send_INFO_message_to_slack_channel
 from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_MAX_INSTANCES, EVENT_JOB_EXECUTED
@@ -13,18 +14,36 @@ if scheduler.state != 1:
     scheduler.start()
     
 
-def job_executed(event): 
+def job_executed(event):
     job_id = str(event.job_id).capitalize()
-    print(f'\n{job_id} was executed successfully at {event.scheduled_run_time}, response: {event.retval}')
+    scheduled_run_time = event.scheduled_run_time.strftime('%Y-%m-%d %H:%M:%S')
+
+    print(f'\n{job_id} was executed successfully at {scheduled_run_time}, response: {event.retval}')
+
+    try:
+        with Session() as session:
+            bot = session.query(Bot).filter(Bot.name == event.job_id).first()
+            if bot:
+                bot.updated_at = datetime.now()
+                session.commit()
+                print(f'{job_id} updated successfully')
+            else:
+                print(f'Bot {job_id} not found in the database')
+    except Exception as e:
+        print(f'Error updating {job_id}: {str(e)}')
     
 def job_error(event):
     job_id = str(event.job_id).capitalize()
-    message = f'An error occured in {job_id}, response: {event.retval}'
+    error_type = event.exception.__class__.__name__
+    message = f"An error occurred in '{job_id}' - {error_type}: {event.exception}"
+    
     send_INFO_message_to_slack_channel(channel_id=logs_channel_id, 
                                        title_message="Error executing AI Alpha Bots", 
                                        sub_title="Response", 
                                        message=message)
-    print(message)
+    
+    print(f"Error: Job '{job_id}' raised {error_type}")
+    
    
 def job_max_instances_reached(event): 
     job_id = str(event.job_id).capitalize()

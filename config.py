@@ -64,6 +64,7 @@ class Watchlist(Base):
     def as_dict(self):
         return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
+
 class Token(Base):
     __tablename__ = 'tokens'
 
@@ -107,8 +108,21 @@ class Token(Base):
 
     def as_dict(self):
         return {column.name: getattr(self, column.name) for column in self.__table__.columns}
-    
 
+
+class Bot(Base):
+    __tablename__ = 'bot'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    interval = Column(Integer, default=3)
+    status = Column(Boolean, default=False)
+    created_at = Column(TIMESTAMP, default=datetime.now)
+    updated_at = Column(TIMESTAMP, default=datetime.now, onupdate=datetime.now) 
+
+    def as_dict(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns} 
+    
 
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
@@ -144,6 +158,21 @@ def create_default_admin(username, email, role, password):
     print('---Default admin user created---')
     return 'Default admin user created'
 
+# Creates a default bot
+def create_default_bot(name, description):
+    existing_default_bot = session.query(Bot).filter(Bot.name == name).first()
+    if existing_default_bot:
+        return existing_default_bot.as_dict()
+
+    new_bot = Bot(name=name,
+                  description=description
+                )
+    session.add(new_bot)
+    session.commit()
+    print('---Default Bot created---')
+    return 'Default Bot created'
+
 
 # Executes default records
 create_default_watchlist(name="standard", description="This watchlist contains tokens with no specific category")
+create_default_bot(name="fundamental analysis", description="It keeps updated the main information about a token")
