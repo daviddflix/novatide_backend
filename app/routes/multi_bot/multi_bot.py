@@ -99,6 +99,10 @@ def edit_interval():
         if not bot_id or not new_interval:
             return jsonify({'response': 'Bot ID and new interval are required', 'success': False}), 400
 
+        # Check if the new interval is not negative
+        if int(new_interval) < 0:
+            return jsonify({'response': 'Interval cannot be negative', 'success': False}), 400
+
         with Session() as session:
             bot = session.query(Bot).filter(Bot.id == bot_id).first()
 
@@ -111,12 +115,13 @@ def edit_interval():
             # Reschedule the job with the new interval
             job = scheduler.get_job(bot.name)
             if job:
-                scheduler.reschedule_job(job.id, trigger='interval', minutes=bot.interval)
+                scheduler.reschedule_job(job.id, trigger='interval', hours=bot.interval)
                 return jsonify({'response': 'Interval updated and job rescheduled', 'success': True}), 200
             else:
                 return jsonify({'response': f'{bot.name} bot is not active yet, please activate first', 'success': False}), 400
     except Exception as e:
         return jsonify({'response': str(e), 'success': False}), 500
+
 
 
 # Get the ID of the token from CoinGecko and add the token to a watchlist if specified.
