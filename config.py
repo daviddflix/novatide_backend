@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import relationship
-from sqlalchemy import create_engine, Column, Integer, String, Float, TIMESTAMP, ForeignKey, Table, Enum, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, Float, TIMESTAMP, ForeignKey, Table, Enum, Boolean, Text
 from sqlalchemy.ext.declarative import declarative_base
 
 load_dotenv()
@@ -123,6 +123,38 @@ class Bot(Base):
     def as_dict(self):
         return {column.name: getattr(self, column.name) for column in self.__table__.columns} 
     
+class WhitepaperAnalysis(Base):
+    __tablename__ = 'whitepaper_analysis'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    label = Column(String, nullable=False)
+    perplexity_summary = Column(Text, nullable=False) 
+    open_ai_summary = Column(Text, nullable=False) 
+    created_at = Column(TIMESTAMP, default=datetime.now)
+    updated_at = Column(TIMESTAMP, default=datetime.now, onupdate=datetime.now) 
+
+    def as_dict(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+    
+    def to_dict(self):
+        """Converts the WhitepaperAnalysis object into a dictionary representation.
+
+        This method is essential for serializing the model data into JSON format
+        when returning responses from Flask routes. It ensures that the data is
+        structured in a way that's easily consumable by the frontend or API clients.
+
+        Returns:
+            dict: A dictionary containing the object's attributes and their values.
+        """
+
+        return {
+            'id': self.id,
+            'label': self.label,
+            'perplexity_summary': self.perplexity_summary,
+            'open_ai_summary': self.open_ai_summary,
+            'created_at': self.created_at.isoformat(), 
+            'updated_at': self.updated_at.isoformat(), 
+        }
 
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
