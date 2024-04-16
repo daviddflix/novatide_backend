@@ -190,6 +190,8 @@ def create_default_admin(username, email, role, password):
     print('---Default admin user created---')
     return 'Default admin user created'
 
+
+
 # Creates a default bot
 def create_default_bot(name, description):
     existing_default_bot = session.query(Bot).filter(Bot.name == name).first()
@@ -208,3 +210,4 @@ def create_default_bot(name, description):
 # Executes default records
 create_default_watchlist(name="standard", description="This watchlist contains tokens with no specific category")
 create_default_bot(name="fundamental analysis", description="It keeps updated the main information about a token")
+create_default_admin(username="novatideteam", email="novatideteam@example.com", role="admin", password="novatide123")

@@ -79,6 +79,16 @@ def create_whitepaper_analysis():
         one_summary = clean_summary(final_sumary_result)
         
         print("Summary: ", one_summary)
+        
+        new_whitepaper = WhitepaperAnalysis(
+        label=data['label'],
+        perplexity_summary=one_summary,
+        open_ai_summary=general_summary
+        )
+        session.add(new_whitepaper)
+        session.commit()
+        
+    
     
     # try:
     #     summary = general_perplexity_result.get('response', '')
@@ -97,13 +107,7 @@ def create_whitepaper_analysis():
         
         
 
-        # new_whitepaper = WhitepaperAnalysis(
-        #     label=data['label'],
-        #     perplexity_summary=finalSummary,
-        #     open_ai_summary=finalOpenAiSummary
-        # )
-        # session.add(new_whitepaper)
-        # session.commit()
+    
         
 
 
