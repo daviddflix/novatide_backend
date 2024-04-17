@@ -5,7 +5,8 @@ from app.services.Perplexity.perplexity import perplexity_api_request
 from app.services.OpenAI.openAI import ask_chatgpt
 
 from app.routes.whitepaper.perplexity_helpers import general_perplexity_prompt
-from app.routes.whitepaper.perplexity_helpers import competitor_perplexity_prompt
+from app.routes.whitepaper.perplexity_helpers import pre_competitor_perplexity_prompt
+from app.routes.whitepaper.perplexity_helpers import post_competitor_perplexity_prompt
 from app.routes.whitepaper.perplexity_helpers import community_perplexity_prompt
 from app.routes.whitepaper.perplexity_helpers import platform_and_data_perplexity_prompt
 from app.routes.whitepaper.perplexity_helpers import tokenomics_perplexity_prompt
@@ -37,7 +38,7 @@ def create_whitepaper_analysis():
         general_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=general_perplexity_prompt)
         general_summary = clean_summary(general_perplexity_result)
 
-        competitor_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=competitor_perplexity_prompt)
+        competitor_perplexity_result = perplexity_api_request(perplexity_model, content=f'{pre_competitor_perplexity_prompt}'+ data['label'] + f'{post_competitor_perplexity_prompt}', prompt=f'{pre_competitor_perplexity_prompt}'+ data['label'] + f'{post_competitor_perplexity_prompt}')
         competitor_summary = clean_summary(competitor_perplexity_result)
 
         community_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=community_perplexity_prompt)
@@ -72,6 +73,8 @@ def create_whitepaper_analysis():
             f"Team Summary:\n{team_summary}\n"
             f"Partners and Investors Summary:\n{partners_investors_summary}\n"
         )
+        
+        print("COMPETITOR,", competitor_summary)
         
         # print("COMPLETE SUMMARY:", final_summary)
         
