@@ -62,27 +62,27 @@ def create_whitepaper_analysis():
         partners_investors_summary = clean_summary(partners_and_investors_result)
 
         final_summary = (
-            f"{general_summary}\n"
-            f"{competitor_summary}\n"
-            f"{community_summary}\n"
-            f"{platform_data_summary}\n"
-            f"{tokenomics_summary}\n"
-            f"{circulating_supply_summary}\n"
-            f"{revenue_summary}\n"
-            f"{team_summary}\n"
-            f"{partners_investors_summary}\n"
+            f"General Summary:\n{general_summary}\n"
+            f"Competitor Summary:\n{competitor_summary}\n"
+            f"Community Summary:\n{community_summary}\n"
+            f"Platform Data Summary:\n{platform_data_summary}\n"
+            f"Tokenomics Summary:\n{tokenomics_summary}\n"
+            f"Circulating Supply Summary:\n{circulating_supply_summary}\n"
+            f"Revenue Summary:\n{revenue_summary}\n"
+            f"Team Summary:\n{team_summary}\n"
+            f"Partners and Investors Summary:\n{partners_investors_summary}\n"
         )
         
-        print("COMPLETE SUMMARY:", final_summary)
+        # print("COMPLETE SUMMARY:", final_summary)
         
-        final_sumary_result = perplexity_api_request(perplexity_model, content=final_summary, prompt=final_summary_prompt)
-        one_summary = clean_summary(final_sumary_result)
+        # final_sumary_result = perplexity_api_request(perplexity_model, content=final_summary, prompt=final_summary_prompt)
+        # one_summary = clean_summary(final_sumary_result)
         
-        print("Summary: ", one_summary)
+        # print("Summary: ", one_summary)
         
         new_whitepaper = WhitepaperAnalysis(
         label=data['label'],
-        perplexity_summary=one_summary,
+        perplexity_summary=final_summary,
         open_ai_summary=general_summary
         )
         session.add(new_whitepaper)
