@@ -24,7 +24,7 @@ whitepaper_bp = Blueprint('whitepaperRoutes', __name__)
 @whitepaper_bp.route('/create_whitepaper_analysis', methods=['POST'])
 def create_whitepaper_analysis():
     data = request.json
-    perplexity_model = 'codellama-34b-instruct'
+    perplexity_model = 'codellama-70b-instruct'
 
     if not data:
         return jsonify({'error': 'Data is required', 'success': False}), 400
@@ -73,15 +73,7 @@ def create_whitepaper_analysis():
             f"Team Summary:\n{team_summary}\n"
             f"Partners and Investors Summary:\n{partners_investors_summary}\n"
         )
-        
-        print("COMPETITOR,", competitor_summary)
-        
-        # print("COMPLETE SUMMARY:", final_summary)
-        
-        # final_sumary_result = perplexity_api_request(perplexity_model, content=final_summary, prompt=final_summary_prompt)
-        # one_summary = clean_summary(final_sumary_result)
-        
-        # print("Summary: ", one_summary)
+    
         
         new_whitepaper = WhitepaperAnalysis(
         label=data['label'],
@@ -90,34 +82,12 @@ def create_whitepaper_analysis():
         )
         session.add(new_whitepaper)
         session.commit()
-        
-    
-    
-    # try:
-    #     summary = general_perplexity_result.get('response', '')
-    #     parts = summary.split('titled "', 1)
-    #     if len(parts) > 1:
-    #         summary = parts[1].strip()
-    #     finalSummary = summary.replace('"', '')
-
-        # openAi_result = ask_chatgpt(
-        #     prompt=f'please create a summary based on this whitepaper text {finalSummary}', model="gpt-4")
-
-        # finalOpenAiSummary = openAi_result.get('response', '')
-        
-        # print("OPENAI RESULT:",finalOpenAiSummary )
-        # print("perplexity RESULT:",finalSummary )
-        
-        
-
-    
-        
 
 
         return jsonify({'message': 'Whitepaper analysis created successfully', 'success': True}), 200
     except Exception as e:
         session.rollback()
-        return jsonify({'error': str(e), 'success': False}), 500
+        return jsonify({'ERROR': f' ERROR PERPLEXITY {str(e)}', 'success': False}), 500
 
 
 # ----- DELETE A WHITEPAPER ANALYSIS ROUTE ----- #
