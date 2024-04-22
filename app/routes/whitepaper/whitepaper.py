@@ -24,42 +24,45 @@ whitepaper_bp = Blueprint('whitepaperRoutes', __name__)
 @whitepaper_bp.route('/create_whitepaper_analysis', methods=['POST'])
 def create_whitepaper_analysis():
     data = request.json
-    perplexity_model = 'codellama-70b-instruct'
-
+    summary = ""
+    perplexity_model = 'sonar-medium-online'
     if not data:
         return jsonify({'error': 'Data is required', 'success': False}), 400
 
     if 'label' not in data or 'summary' not in data:
         return jsonify({'error': 'Label and summary are required fields', 'success': False}), 400
 
-    
-     # Perplexity prompt Functions:
+    pdf_text = data.get('pdfText')  # Obtener pdfText de los datos enviados
+    summary = data.get('summary') 
+    if pdf_text:
+        summary = f'{summary} {pdf_text}'
+        
     try:
-        general_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=general_perplexity_prompt)
+        general_perplexity_result = perplexity_api_request(perplexity_model, content=summary, prompt=general_perplexity_prompt)
         general_summary = clean_summary(general_perplexity_result)
 
         competitor_perplexity_result = perplexity_api_request(perplexity_model, content=f'{pre_competitor_perplexity_prompt}'+ data['label'] + f'{post_competitor_perplexity_prompt}', prompt=f'{pre_competitor_perplexity_prompt}'+ data['label'] + f'{post_competitor_perplexity_prompt}')
         competitor_summary = clean_summary(competitor_perplexity_result)
 
-        community_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=community_perplexity_prompt)
+        community_perplexity_result = perplexity_api_request(perplexity_model, content=summary, prompt=community_perplexity_prompt)
         community_summary = clean_summary(community_perplexity_result)
 
-        platform_and_data_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=platform_and_data_perplexity_prompt)
+        platform_and_data_perplexity_result = perplexity_api_request(perplexity_model, content=summary, prompt=platform_and_data_perplexity_prompt)
         platform_data_summary = clean_summary(platform_and_data_perplexity_result)
 
-        tokenomics_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=tokenomics_perplexity_prompt)
+        tokenomics_perplexity_result = perplexity_api_request(perplexity_model, content=summary, prompt=tokenomics_perplexity_prompt)
         tokenomics_summary = clean_summary(tokenomics_perplexity_result)
 
-        circulating_supply_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=circulating_supply_perplexity_prompt)
+        circulating_supply_perplexity_result = perplexity_api_request(perplexity_model, content=summary, prompt=circulating_supply_perplexity_prompt)
         circulating_supply_summary = clean_summary(circulating_supply_perplexity_result)
 
-        revenue_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=revenue_perplexity_prompt)
+        revenue_perplexity_result = perplexity_api_request(perplexity_model, content=summary, prompt=revenue_perplexity_prompt)
         revenue_summary = clean_summary(revenue_perplexity_result)
 
-        team_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=team_perplexity_prompt)
+        team_perplexity_result = perplexity_api_request(perplexity_model, content=summary, prompt=team_perplexity_prompt)
         team_summary = clean_summary(team_perplexity_result)
 
-        partners_and_investors_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=partners_and_investors_prompt)
+        partners_and_investors_result = perplexity_api_request(perplexity_model, content=summary, prompt=partners_and_investors_prompt)
         partners_investors_summary = clean_summary(partners_and_investors_result)
 
         final_summary = (
@@ -74,7 +77,7 @@ def create_whitepaper_analysis():
             f"Partners and Investors Summary:\n{partners_investors_summary}\n"
         )
     
-        
+        print("final:", final_summary)
         new_whitepaper = WhitepaperAnalysis(
         label=data['label'],
         perplexity_summary=final_summary,
