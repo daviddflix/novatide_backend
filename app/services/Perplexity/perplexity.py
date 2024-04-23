@@ -51,3 +51,5 @@ def perplexity_api_request(model, content, prompt="Be precise and concise"):
     except requests.exceptions.RequestException as err:
         print(f"Error during API request: {err}")
         return {'response': f"Error during API request: {err}", 'success': False}
+    
+
