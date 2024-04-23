@@ -3,7 +3,7 @@ from sqlalchemy import func
 from config import WhitepaperAnalysis, session
 from app.services.Perplexity.perplexity import perplexity_api_request
 from app.services.OpenAI.openAI import ask_chatgpt
-
+import threading
 from app.routes.whitepaper.perplexity_helpers import general_perplexity_prompt
 from app.routes.whitepaper.perplexity_helpers import pre_competitor_perplexity_prompt
 from app.routes.whitepaper.perplexity_helpers import post_competitor_perplexity_prompt
@@ -16,108 +16,83 @@ from app.routes.whitepaper.perplexity_helpers import team_perplexity_prompt
 from app.routes.whitepaper.perplexity_helpers import partners_and_investors_prompt
 from app.routes.whitepaper.perplexity_helpers import final_summary_prompt
 from app.routes.whitepaper.perplexity_helpers import clean_summary
+
+
 whitepaper_bp = Blueprint('whitepaperRoutes', __name__)
 
 # ----- CREATE A NEW WHITEPAPER ANALYSIS ROUTE ----- #
 
 
+
 @whitepaper_bp.route('/create_whitepaper_analysis', methods=['POST'])
 def create_whitepaper_analysis():
     data = request.json
-    perplexity_model = 'codellama-34b-instruct'
+    summary = ""
+    perplexity_model = 'sonar-medium-online'
 
-    if not data:
-        return jsonify({'error': 'Data is required', 'success': False}), 400
-
-    if 'label' not in data or 'summary' not in data:
+    if not data or 'label' not in data or 'summary' not in data:
         return jsonify({'error': 'Label and summary are required fields', 'success': False}), 400
 
-    
-     # Perplexity prompt Functions:
+    pdf_text = data.get('pdfText')
+    summary = data.get('summary') if not pdf_text else f'{data["summary"]} {pdf_text}'
+
+    model_prompt_map = {
+    'general': general_perplexity_prompt,
+    'competitor': f'{pre_competitor_perplexity_prompt}{data["label"]}{post_competitor_perplexity_prompt}',
+    'community': community_perplexity_prompt,
+    'platform_and_data': platform_and_data_perplexity_prompt,
+    'tokenomics': tokenomics_perplexity_prompt,
+    'circulating_supply': circulating_supply_perplexity_prompt,
+    'revenue': revenue_perplexity_prompt,
+    'team': team_perplexity_prompt,
+    'partners_and_investors': partners_and_investors_prompt
+    }
+
     try:
-        general_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=general_perplexity_prompt)
-        general_summary = clean_summary(general_perplexity_result)
+        result_container = []
 
-        competitor_perplexity_result = perplexity_api_request(perplexity_model, content=f'{pre_competitor_perplexity_prompt}'+ data['label'] + f'{post_competitor_perplexity_prompt}', prompt=f'{pre_competitor_perplexity_prompt}'+ data['label'] + f'{post_competitor_perplexity_prompt}')
-        competitor_summary = clean_summary(competitor_perplexity_result)
+        threads = []
+        for prompt in model_prompt_map.values():
+            thread = threading.Thread(
+                target=process_summary,
+                kwargs={'model': 'sonar-medium-online', 'content': summary, 'prompt': prompt, 'result_container': result_container}
+            )
+            threads.append(thread)
+            thread.start()
 
-        community_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=community_perplexity_prompt)
-        community_summary = clean_summary(community_perplexity_result)
+        for thread in threads:
+            thread.join()
 
-        platform_and_data_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=platform_and_data_perplexity_prompt)
-        platform_data_summary = clean_summary(platform_and_data_perplexity_result)
-
-        tokenomics_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=tokenomics_perplexity_prompt)
-        tokenomics_summary = clean_summary(tokenomics_perplexity_result)
-
-        circulating_supply_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=circulating_supply_perplexity_prompt)
-        circulating_supply_summary = clean_summary(circulating_supply_perplexity_result)
-
-        revenue_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=revenue_perplexity_prompt)
-        revenue_summary = clean_summary(revenue_perplexity_result)
-
-        team_perplexity_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=team_perplexity_prompt)
-        team_summary = clean_summary(team_perplexity_result)
-
-        partners_and_investors_result = perplexity_api_request(perplexity_model, content=data['summary'], prompt=partners_and_investors_prompt)
-        partners_investors_summary = clean_summary(partners_and_investors_result)
-
+        # Combine results
         final_summary = (
-            f"General Summary:\n{general_summary}\n"
-            f"Competitor Summary:\n{competitor_summary}\n"
-            f"Community Summary:\n{community_summary}\n"
-            f"Platform Data Summary:\n{platform_data_summary}\n"
-            f"Tokenomics Summary:\n{tokenomics_summary}\n"
-            f"Circulating Supply Summary:\n{circulating_supply_summary}\n"
-            f"Revenue Summary:\n{revenue_summary}\n"
-            f"Team Summary:\n{team_summary}\n"
-            f"Partners and Investors Summary:\n{partners_investors_summary}\n"
+            f"General Summary \n{result_container[0]}\n"
+            f"Competitor Summary \n{result_container[1]}\n"
+            f"Community Summary \n{result_container[2]}\n"
+            f"Platform Data Summary \n{result_container[3]}\n"
+            f"Tokenomics Summary \n{result_container[4]}\n"
+            f"Circulating Supply Summary \n{result_container[5]}\n"
+            f"Revenue Summary \n{result_container[6]}\n"
+            f"Team Summary \n{result_container[7]}\n"
+            f"Partners and Investors Summary \n{result_container[8]}\n"
         )
-        
-        print("COMPETITOR,", competitor_summary)
-        
-        # print("COMPLETE SUMMARY:", final_summary)
-        
-        # final_sumary_result = perplexity_api_request(perplexity_model, content=final_summary, prompt=final_summary_prompt)
-        # one_summary = clean_summary(final_sumary_result)
-        
-        # print("Summary: ", one_summary)
-        
+
         new_whitepaper = WhitepaperAnalysis(
-        label=data['label'],
-        perplexity_summary=final_summary,
-        open_ai_summary=general_summary
+            label=data['label'],
+            perplexity_summary=final_summary,
+            open_ai_summary=result_container[0]
         )
         session.add(new_whitepaper)
         session.commit()
-        
-    
-    
-    # try:
-    #     summary = general_perplexity_result.get('response', '')
-    #     parts = summary.split('titled "', 1)
-    #     if len(parts) > 1:
-    #         summary = parts[1].strip()
-    #     finalSummary = summary.replace('"', '')
-
-        # openAi_result = ask_chatgpt(
-        #     prompt=f'please create a summary based on this whitepaper text {finalSummary}', model="gpt-4")
-
-        # finalOpenAiSummary = openAi_result.get('response', '')
-        
-        # print("OPENAI RESULT:",finalOpenAiSummary )
-        # print("perplexity RESULT:",finalSummary )
-        
-        
-
-    
-        
-
 
         return jsonify({'message': 'Whitepaper analysis created successfully', 'success': True}), 200
     except Exception as e:
         session.rollback()
-        return jsonify({'error': str(e), 'success': False}), 500
+        return jsonify({'error': f'Error analysing whitepaper {str(e)}', 'success': False}), 500
+
+def process_summary(model, content, prompt, result_container):
+    result = perplexity_api_request(model, content=content, prompt=prompt)
+    result_container.append(clean_summary(result))
+
 
 
 # ----- DELETE A WHITEPAPER ANALYSIS ROUTE ----- #
