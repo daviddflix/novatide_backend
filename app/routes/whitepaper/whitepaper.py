@@ -65,8 +65,8 @@ def create_whitepaper_analysis():
 
         # Combine results
         final_summary = (
-            f"General Summary \n{result_container[0]}\n"
-            f"Competitor Summary \n{result_container[1]}\n"
+            f"General Summary \n{result_container[1]}\n"
+            f"Competitor Summary \n{result_container[0]}\n"
             f"Community Summary \n{result_container[2]}\n"
             f"Platform Data Summary \n{result_container[3]}\n"
             f"Tokenomics Summary \n{result_container[4]}\n"
