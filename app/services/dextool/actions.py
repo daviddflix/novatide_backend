@@ -165,26 +165,7 @@ def get_dextool_data(chain_name, address):
                 
                 # Extracting the values
                 total_score = score_data["data"]["dextScore"]["total"]
-                upvotes = score_data["data"]["votes"]["upvotes"]
-                downvotes = score_data["data"]["votes"]["downvotes"]
-
-                # Calculating total votes
-                total_votes = upvotes + downvotes
-
-                # Calculating the upvote ratio
-                upvote_ratio = upvotes / total_votes
-
-                # Converting the ratio to a percentage
-                percentage_score = upvote_ratio * 100
-
-                # Calculating the final score
-                final_score = (percentage_score / 100) * total_score
-
-                # Rounding the score
-                final_score_rounded = round(final_score)
-
-                formatted_score = f"{final_score_rounded}/{total_score}"
-                dextool_data['score'] = formatted_score
+                dextool_data['score'] = total_score
 
             # TAX, MINTABLE, VALATILITY, BLACKLISTED...
             token_audits = get_token_audit(chain_id=chain_id, token_address=address)
@@ -198,6 +179,7 @@ def get_dextool_data(chain_name, address):
                 dextool_data['buyTax'] = audits_data['data']['buyTax']['max']
                 dextool_data['isPotentiallyScam'] = audits_data['data']['isPotentiallyScam']
                 dextool_data['isContractRenounced'] = audits_data['data']['isContractRenounced']
+                dextool_data['isMintable'] = audits_data['data']['isMintable']
 
 
         return {'data': dextool_data, 'success': True}
@@ -205,7 +187,7 @@ def get_dextool_data(chain_name, address):
         return {'error': str(e), 'success': False}
 
 
-# print(get_dextool_data(chain_name='ethereum', address='0xfb7b4564402e5500db5bb6d63ae671302777c75a'))
+# print(get_dextool_data(chain_name='ethereum', address='0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0'))
 
 
 
