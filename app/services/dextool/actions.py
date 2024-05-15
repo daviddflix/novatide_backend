@@ -153,6 +153,11 @@ def get_dextool_data(chain_name, address):
         if chain_data['success']:
             chain_id = chain_data['response'][0]['id']
             token_score = get_token_score(chain_id=chain_id, token_address=address)
+
+
+            dextool_data['chain_id'] = chain_id
+            dextool_data['chain_name']= chain_name
+            dextool_data['address'] = address
             
             # SCORE VALUES
             if token_score['success']:

@@ -6,7 +6,7 @@ from app.services.CoinMarketcap.coinmarketcap import get_crypto_metadata
 from app.services.defillama.defillama import get_protocol_tvl, get_llama_chains
 from config import session, Token, Session
 from datetime import datetime
-
+from app.services.dextool.actions import get_dextool_data
 
 def get_all_available_data(token_name, analysis_prompt):
 
@@ -21,10 +21,34 @@ def get_all_available_data(token_name, analysis_prompt):
 
     try: 
         gpt_response=ask_chatgpt(coin_analysis_prompt, model="gpt-4-0125-preview")
-        perplexity_response=perplexity_api_request(content=coin_analysis_prompt, model="codellama-70b-instruct")
+        perplexity_response=perplexity_api_request(content=coin_analysis_prompt, prompt=None , model="codellama-70b-instruct")
         coingecko_response=get_token_data(formatted_token_name)
 
+
         token_symbol = coingecko_response['symbol'] if coingecko_response['success'] else formatted_token_name
+        
+        # GET CHAIN AND ADDRESS FROM COINGECKO AND USE IN DEXTOOL
+        all_dextool_data = []
+        if coingecko_response['success'] and isinstance(coingecko_response['contracts'], str) and len(coingecko_response['contracts']) > 0:
+        
+            contract_lines = coingecko_response['contracts'].split('\n')
+            contract_info = {}
+
+            for line in contract_lines:
+                if line:
+                    parts = line.split(': ')
+                    if len(parts) == 2:
+                        key, value = parts
+                        key = key.strip()
+                        contract_info[key] = value
+
+            # Iterate over each contract
+            for chain_name, address in contract_info.items():
+                dextool_data = get_dextool_data(chain_name=chain_name, address=address)
+                if dextool_data['success']:
+                    all_dextool_data.append(dextool_data['data'])
+
+        
         
         coinmarketcap_response = get_crypto_metadata(token_symbol)
         staking_reward_response = get_staking_rewards_data(token_symbol)
@@ -78,6 +102,7 @@ def get_all_available_data(token_name, analysis_prompt):
             'coinmarketcap_response': coinmarketcap_response,
             'defillama_protocol_response': defillama_response,
             'defillama_chains_response': defillama_chains_response,
+            'dextool': all_dextool_data
         }
         return {'response': final_response, 'success': True}
     
