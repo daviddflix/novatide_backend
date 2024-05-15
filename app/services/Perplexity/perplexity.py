@@ -6,9 +6,11 @@ from dotenv import load_dotenv
 load_dotenv()
 PERPLEXITY_API_KEY = os.getenv("PERPLEXITY_API_KEY")
 
-def perplexity_api_request(model, content, prompt="Be precise and concise"):
+def perplexity_api_request(model, content, prompt):
     
     url = "https://api.perplexity.ai/chat/completions"
+    prompt = prompt if prompt else "Be precise and concise"
+
 
     payload = {
         "model": model,
@@ -43,14 +45,11 @@ def perplexity_api_request(model, content, prompt="Be precise and concise"):
             if answer_content:
                 return {'response': answer_content, 'success': True}
             else:
-                print(f"No answer found for this prompt: {prompt}. Error: {assistant_message}")
                 return {'response': f"No answer found for this prompt: {prompt}. Error: {assistant_message}", 'success': False}
         else:
-            print(f"No choices found for this prompt: {prompt} - in the API response.")
             return {'response': f"No choices found for this prompt: {prompt}, Error: {choices}", 'success': False}
     
     except requests.exceptions.RequestException as err:
-        print(f"Error during API request: {err}")
         return {'response': f"Error during API request: {err}", 'success': False}
 
 

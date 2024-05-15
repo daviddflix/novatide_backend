@@ -8,7 +8,7 @@ from sqlalchemy import or_
 
 multi_bot_bp = Blueprint('multi_bot', __name__)
 
-# Get all available data
+# Get all available data from Coingecko, defillama, coinmarketcap...
 @multi_bot_bp.route('/activate/multi_bot', methods=['POST'])
 def get_data_tokens():
     try:
@@ -90,6 +90,7 @@ def get_bots():
         return jsonify({'error': str(e)}), 500
     
 
+# Edit time internval of a bot
 @multi_bot_bp.route('/multi-bot/edit-interval', methods=['POST'])
 def edit_interval():
     try:

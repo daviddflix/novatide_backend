@@ -28,7 +28,6 @@ whitepaper_bp = Blueprint('whitepaperRoutes', __name__)
 def create_whitepaper_analysis():
     data = request.json
     summary = ""
-    perplexity_model = 'sonar-medium-online'
 
     if not data or 'label' not in data or 'summary' not in data:
         return jsonify({'error': 'Label and summary are required fields', 'success': False}), 400
