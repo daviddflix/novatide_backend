@@ -90,7 +90,7 @@ def get_bots():
         return jsonify({'error': str(e)}), 500
     
 
-# Edit time internval of a bot
+# Edit time internval of a bot 
 @multi_bot_bp.route('/multi-bot/edit-interval', methods=['POST'])
 def edit_interval():
     try:
@@ -237,3 +237,26 @@ def delete_tokens():
         session.rollback()
         print(e)
         return jsonify({'response': str(e), 'success': False}), 500
+
+
+@multi_bot_bp.route('/get/token_data', methods=['GET'])
+def get_token_data():
+    try:
+        response = {'error': None, 'success': False, 'data': None}
+        token_symbol = request.args.get('token_symbol')
+        if not token_symbol:
+            response['error'] = 'Token symbol is required'
+            return response, 400
+        
+        token = session.query(Token).filter_by(symbol=str(token_symbol).casefold()).first()
+        if not token:
+            response['error'] = f'Token {token_symbol} not found'
+            return response, 404
+        
+        response['success'] = True
+        response['data'] = token.as_dict()
+        return response, 200
+
+    except Exception as e:
+        response['error'] = f'Error getting token data: {str(e)}'
+        return response, 500
