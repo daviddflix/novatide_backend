@@ -216,6 +216,7 @@ def delete_tokens():
         ids = request.json['ids']
         
         # Check if the IDs array is empty
+        
         if not ids:
             return jsonify({'response': 'IDs array is empty', 'success': False}), 400
         
