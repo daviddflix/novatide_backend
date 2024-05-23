@@ -29,7 +29,6 @@ def get_staking_rewards_data(symbol):
         data = {"query": query}
 
         response = requests.post(STAKING_REWARD_BASE_URL, json=data, headers=headers)
-        print('response: ', response.text)
 
         if response.status_code == 200:
             result = response.json()
@@ -67,8 +66,8 @@ def get_staking_rewards_data(symbol):
 
 
 # ---------Example usage------
-result = get_staking_rewards_data('stmatic')
-print('result: ', result)
+# result = get_staking_rewards_data('stmatic')
+# print('result: ', result)
     
 # ------ Data retrieve-------
 # inflation_rate

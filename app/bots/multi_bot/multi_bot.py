@@ -20,9 +20,9 @@ def get_all_available_data_to_app(token_name, analysis_prompt):
         coin_analysis_prompt = str(analysis_prompt).casefold()
 
     try: 
-        gpt_response=ask_chatgpt(coin_analysis_prompt, model="gpt-4-0125-preview")
-        perplexity_response=perplexity_api_request(content=coin_analysis_prompt, 
-                                                   prompt=None , model="llama-3-sonar-large-32k-chat")
+        # gpt_response=ask_chatgpt(coin_analysis_prompt, model="gpt-4-0125-preview")
+        # perplexity_response=perplexity_api_request(content=coin_analysis_prompt, 
+        #                                            prompt=None , model="llama-3-sonar-large-32k-chat")
         coingecko_response=get_token_data(formatted_token_name)
 
 
@@ -57,8 +57,8 @@ def get_all_available_data_to_app(token_name, analysis_prompt):
         defillama_chains_response = get_llama_chains(token_symbol)
 
         final_response = {
-            'analysis_1': gpt_response,
-            'analysis_2': perplexity_response,
+            # 'analysis_1': gpt_response,
+            # 'analysis_2': perplexity_response,
             'coingecko_response': coingecko_response,
             'staking_reward_response': staking_reward_response,
             'coinmarketcap_response': coinmarketcap_response,

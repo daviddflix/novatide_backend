@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.bots.multi_bot.multi_bot import get_all_available_data, activate_multi_bot
+from app.bots.multi_bot.multi_bot import get_all_available_data, activate_multi_bot, get_all_available_data_to_app
 from app.services.CoinGecko.actions import get_list_of_coins
 from config import Token, session, Watchlist, Session, Bot
 from app.scheduler import scheduler
@@ -7,6 +7,25 @@ from datetime import datetime
 from sqlalchemy import or_
 
 multi_bot_bp = Blueprint('multi_bot', __name__)
+
+# Get all available data from Coingecko, defillama, coinmarketcap... To the app
+# Difference is that it does not mess with the database
+@multi_bot_bp.route('/ask/ai', methods=['POST'])
+def get_data_tokens_data():
+    try:
+        token_name = request.args.get('token_name')
+        analysis_prompt = request.args.get('analysis_prompt', None)
+
+        if not token_name:
+            return jsonify({'response': 'Token name is required', 'success': False}), 400
+        
+        result = get_all_available_data_to_app(token_name, analysis_prompt)
+        if result['success']:
+            return jsonify({'response': result, 'success': True}), 200
+        return jsonify({'response': result['response'], 'success': False}), 404
+    except Exception as e:
+        return jsonify({'response': str(e), 'success': False}), 500
+    
 
 # Get all available data from Coingecko, defillama, coinmarketcap...
 @multi_bot_bp.route('/activate/multi_bot', methods=['POST'])
