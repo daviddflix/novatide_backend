@@ -11,6 +11,11 @@ def perplexity_api_request(model, content, prompt):
     url = "https://api.perplexity.ai/chat/completions"
     prompt = prompt if prompt else "Be precise and concise"
 
+    print('model',model)
+    print('content',content)
+    print('prompt',prompt)
+    print('PERPLEXITY_API_KEY',PERPLEXITY_API_KEY)
+
 
     payload = {
         "model": model,
@@ -34,6 +39,7 @@ def perplexity_api_request(model, content, prompt):
 
     try:
         response = requests.post(url, json=payload, headers=headers)
+        print('res: ', response.status_code)
        
         response.raise_for_status()  
 
@@ -52,5 +58,14 @@ def perplexity_api_request(model, content, prompt):
     except requests.exceptions.RequestException as err:
         return {'response': f"Error during API request: {err}", 'success': False}
 
+
+# Example usage
+# formatted_token_name = 'ethereum'
+# coin_analysis_prompt = f"Write a short paragraph (maximum 400 characters) explaining the {formatted_token_name} protocol, the problem it is trying to address and its main use cases."
+
+# print(perplexity_api_request(model="codellama-70b-instruct",
+#                        prompt=None,
+#                        content=coin_analysis_prompt
+#                        ))
 
 
