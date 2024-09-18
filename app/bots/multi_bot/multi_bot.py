@@ -85,7 +85,7 @@ def get_all_available_data(token_name, analysis_prompt):
 
     try: 
         gpt_response=ask_chatgpt(coin_analysis_prompt, model="gpt-4-0125-preview")
-        perplexity_response=perplexity_api_request(content=coin_analysis_prompt, prompt=None , model="codellama-70b-instruct")
+        perplexity_response=perplexity_api_request(content=coin_analysis_prompt, prompt=None , model="llama-3.1-sonar-large-128k-online")
         coingecko_response=get_token_data(formatted_token_name)
 
 

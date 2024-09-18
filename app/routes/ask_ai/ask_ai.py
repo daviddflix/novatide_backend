@@ -28,7 +28,7 @@ def ask_openai():
 @ai_bp.route('/ask_perplexity', methods=['POST'])
 def ask_perplexity():
     try:
-        model = request.form.get('model', 'codellama-34b-instruct')
+        model = request.form.get('model', 'llama-3.1-sonar-large-128k-online')
         prompt = request.form.get('prompt')
         content = request.form.get('content')
        

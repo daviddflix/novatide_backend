@@ -63,7 +63,7 @@ def perplexity_api_request(model, content, prompt):
 # formatted_token_name = 'ethereum'
 # coin_analysis_prompt = f"Write a short paragraph (maximum 400 characters) explaining the {formatted_token_name} protocol, the problem it is trying to address and its main use cases."
 
-# print(perplexity_api_request(model="codellama-70b-instruct",
+# print(perplexity_api_request(model="llama-3.1-sonar-large-128k-online",
 #                        prompt=None,
 #                        content=coin_analysis_prompt
 #                        ))
